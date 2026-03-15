@@ -1,0 +1,37 @@
+name: Test Create a branch workflow
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  test_workflow:
+    name: Test 1-create-a-branch logic using act
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install act
+        run: curl https://raw.githubusercontent.com/nektos/act/master/install.sh | sudo bash
+
+      - name: Create mock create event payload
+        run: |
+          cat << 'EOF' > event.json
+          {
+            "ref": "my-first-branch",
+            "ref_type": "branch",
+            "repository": {
+              "name": "mock-repo",
+              "owner": {
+                "login": "mock-user"
+              }
+            }
+          }
+          EOF
+
+      - name: Run workflow using act
+        run: |
+          ./bin/act create -e event.json -W .github/workflows/1-create-a-branch.yml --secret GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
