@@ -6,9 +6,7 @@ name: Step 1 # Create a branch
 # - If all checks pass, the workflow is disabled so it doesn't run again. As such, workflow status badge will change to green.
 
 on:
-  push:
-    branches:
-      - "my-first-branch"
+  create
 
 permissions:
   contents: read

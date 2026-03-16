@@ -35,6 +35,12 @@
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Test Tools #
+##############
+bin/
+event.json
+install.sh
 __pycache__/
 *.pyc
 *.pyo
