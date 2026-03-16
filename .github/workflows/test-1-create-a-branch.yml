@@ -28,9 +28,13 @@ jobs:
             "ref_type": "branch",
             "repository": {
               "name": "mock-repo",
+              "full_name": "mock-user/mock-repo",
               "owner": {
                 "login": "mock-user"
               }
+            },
+            "sender": {
+              "login": "mock-user"
             }
           }
           EOF
