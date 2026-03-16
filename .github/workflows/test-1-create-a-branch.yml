@@ -37,5 +37,6 @@ jobs:
 
       - name: Run workflow using act
         run: |
-          # The install script creates a 'bin' folder in your current workspace
-          ./bin/act create -e event.json -W .github/workflows/1-create-a-branch.yml --secret GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} --image nektos/act-environments-ubuntu:medium-23.04
+          # Find the act binary and run it
+          ACT_PATH=$(find . -name act -type f -executable | head -n 1)
+          $ACT_PATH create -e event.json -W .github/workflows/1-create-a-branch.yml --secret GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} --image nektos/act-environments-ubuntu:medium-23.04
