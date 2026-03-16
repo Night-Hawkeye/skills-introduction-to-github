@@ -24,8 +24,13 @@ jobs:
         run: |
           cat << 'EOF' > event.json
           {
-            "ref": "my-first-branch",
-            "ref_type": "branch",
+            "action": "opened",
+            "issue": {
+              "number": 1,
+              "title": "Introduction to GitHub",
+              "user": { "login": "mock-user" },
+              "state": "open"
+            },
             "repository": {
               "name": "mock-repo",
               "full_name": "mock-user/mock-repo",
