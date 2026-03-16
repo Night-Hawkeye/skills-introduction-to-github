@@ -42,4 +42,4 @@ jobs:
             -e event.json \
             -W .github/workflows/1-create-a-branch.yml \
             --secret GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} \
-            -P ubuntu-latest=nektos/act-environments-ubuntu:medium-23.04
+            -P ubuntu-latest=catthehacker/ubuntu:act-latest
