@@ -10,7 +10,10 @@ jobs:
   test_workflow:
     name: Test 1-create-a-branch logic using act
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  # This silences the warning
     steps:
+      # ... rest of your steps
       - name: Checkout repository
         uses: actions/checkout@v4
 
