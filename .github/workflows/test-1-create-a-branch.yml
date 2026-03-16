@@ -32,6 +32,6 @@ jobs:
           }
           EOF
 
-      - name: Run workflow using act
-        run: |
-          ./bin/act create -e event.json -W .github/workflows/1-create-a-branch.yml --secret GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+- name: Run workflow using act
+  run: |
+    ./bin/act create -e event.json -W .github/workflows/1-create-a-branch.yml --secret GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} --image nektos/act-environments-ubuntu:medium-23.04
