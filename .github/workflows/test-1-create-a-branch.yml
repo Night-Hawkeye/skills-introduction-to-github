@@ -44,6 +44,14 @@ jobs:
           }
           EOF
 
+      - name: Create Mock Issue
+        id: create_issue
+        run: |
+          ISSUE_URL=$(gh issue create --title "Exercise: Mock Issue" --body "Mock issue for act testing")
+          echo "ISSUE_URL=$ISSUE_URL" >> $GITHUB_ENV
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Run workflow using act
         run: |
           ACT_PATH=$(find . -name act -type f -executable | head -n 1)
@@ -52,3 +60,10 @@ jobs:
             -W .github/workflows/1-create-a-branch.yml \
             --secret GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} \
             -P ubuntu-latest=catthehacker/ubuntu:act-latest
+
+      - name: Close Mock Issue
+        if: always()
+        run: |
+          gh issue close $ISSUE_URL
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
