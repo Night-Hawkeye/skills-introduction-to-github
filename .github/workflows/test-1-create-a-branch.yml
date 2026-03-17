@@ -28,18 +28,18 @@ jobs:
             "issue": {
               "number": 1,
               "title": "Introduction to GitHub",
-              "user": { "login": "mock-user" },
+              "user": { "login": "${{ github.repository_owner }}" },
               "state": "open"
             },
             "repository": {
-              "name": "mock-repo",
-              "full_name": "mock-user/mock-repo",
+              "name": "${{ github.event.repository.name }}",
+              "full_name": "${{ github.repository }}",
               "owner": {
-                "login": "mock-user"
+                "login": "${{ github.repository_owner }}"
               }
             },
             "sender": {
-              "login": "mock-user"
+              "login": "${{ github.repository_owner }}"
             }
           }
           EOF
