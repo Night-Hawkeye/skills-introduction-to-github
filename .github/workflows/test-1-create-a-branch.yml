@@ -28,27 +28,42 @@ jobs:
             "issue": {
               "number": 1,
               "title": "Introduction to GitHub",
-              "user": { "login": "mock-user" },
+              "user": { "login": "${{ github.repository_owner }}" },
               "state": "open"
             },
             "repository": {
-              "name": "mock-repo",
-              "full_name": "mock-user/mock-repo",
+              "name": "${{ github.event.repository.name }}",
+              "full_name": "${{ github.repository }}",
               "owner": {
-                "login": "mock-user"
+                "login": "${{ github.repository_owner }}"
               }
             },
             "sender": {
-              "login": "mock-user"
+              "login": "${{ github.repository_owner }}"
             }
           }
           EOF
 
+      - name: Create Mock Issue
+        id: create_issue
+        run: |
+          ISSUE_URL=$(gh issue create --title "Exercise: Mock Issue" --body "Mock issue for act testing")
+          echo "ISSUE_URL=$ISSUE_URL" >> $GITHUB_ENV
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Run workflow using act
         run: |
           ACT_PATH=$(find . -name act -type f -executable | head -n 1)
-          $ACT_PATH -j <NAME_OF_JOB_AFTER_FIND_EXERCISE> \
+          $ACT_PATH -j check_step_work \
             -e event.json \
             -W .github/workflows/1-create-a-branch.yml \
             --secret GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} \
             -P ubuntu-latest=catthehacker/ubuntu:act-latest
+
+      - name: Close Mock Issue
+        if: always()
+        run: |
+          gh issue close $ISSUE_URL
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
