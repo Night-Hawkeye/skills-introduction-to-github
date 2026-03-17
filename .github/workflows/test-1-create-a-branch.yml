@@ -47,7 +47,7 @@ jobs:
       - name: Run workflow using act
         run: |
           ACT_PATH=$(find . -name act -type f -executable | head -n 1)
-          $ACT_PATH -j <NAME_OF_JOB_AFTER_FIND_EXERCISE> \
+          $ACT_PATH -j check_step_work \
             -e event.json \
             -W .github/workflows/1-create-a-branch.yml \
             --secret GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} \
