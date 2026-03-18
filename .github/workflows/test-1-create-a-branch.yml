@@ -61,7 +61,7 @@ jobs:
             -e event.json \
             -W .github/workflows/1-create-a-branch.yml \
             --secret GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} \
-            -P ubuntu-latest=catthehacker/ubuntu:act-latest
+            -P ubuntu-latest=catthehacker/ubuntu:full-latest
 
       - name: Close Mock Issue
         if: always()
