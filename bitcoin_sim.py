@@ -1,10 +1,11 @@
 import pandas as pd
 import numpy as np
+import secrets
 from datetime import datetime, timedelta
 
 def simulate_bitcoin_prices(days=60, initial_price=50000, volatility=0.04, drift=0.001):
     """Simulate Bitcoin prices using Geometric Brownian Motion."""
-    np.random.seed(123)  # Use seed 123 for different path to maybe show a trade
+    np.random.seed(secrets.randbits(32))  # Use random seed
     prices = [initial_price]
     for _ in range(1, days):
         shock = np.random.normal(0, 1)
@@ -27,17 +28,22 @@ def run_trading_algorithm(df):
 
     ledger = []
 
+    dates = df['Date'].dt.strftime('%Y-%m-%d').values
+    prices = df['Price'].values
+    ma7s = df['MA7'].values
+    ma30s = df['MA30'].values
+
     for i in range(len(df)):
-        date = df.loc[i, 'Date'].strftime('%Y-%m-%d')
-        price = df.loc[i, 'Price']
-        ma7 = df.loc[i, 'MA7']
-        ma30 = df.loc[i, 'MA30']
+        date = dates[i]
+        price = prices[i]
+        ma7 = ma7s[i]
+        ma30 = ma30s[i]
 
         action = "HOLD"
 
-        if i > 0 and not pd.isna(ma7) and not pd.isna(ma30) and not pd.isna(df.loc[i-1, 'MA7']) and not pd.isna(df.loc[i-1, 'MA30']):
-            prev_ma7 = df.loc[i-1, 'MA7']
-            prev_ma30 = df.loc[i-1, 'MA30']
+        if i > 0 and not pd.isna(ma7) and not pd.isna(ma30) and not pd.isna(ma7s[i-1]) and not pd.isna(ma30s[i-1]):
+            prev_ma7 = ma7s[i-1]
+            prev_ma30 = ma30s[i-1]
 
             # Golden Cross: MA7 crosses above MA30 -> BUY
             if prev_ma7 <= prev_ma30 and ma7 > ma30:
