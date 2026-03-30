@@ -27,17 +27,23 @@ def run_trading_algorithm(df):
 
     ledger = []
 
+    # Pre-extract columns to NumPy arrays for faster access
+    dates = df['Date'].dt.strftime('%Y-%m-%d').values
+    prices = df['Price'].values
+    ma7s = df['MA7'].values
+    ma30s = df['MA30'].values
+
     for i in range(len(df)):
-        date = df.loc[i, 'Date'].strftime('%Y-%m-%d')
-        price = df.loc[i, 'Price']
-        ma7 = df.loc[i, 'MA7']
-        ma30 = df.loc[i, 'MA30']
+        date = dates[i]
+        price = prices[i]
+        ma7 = ma7s[i]
+        ma30 = ma30s[i]
 
         action = "HOLD"
 
-        if i > 0 and not pd.isna(ma7) and not pd.isna(ma30) and not pd.isna(df.loc[i-1, 'MA7']) and not pd.isna(df.loc[i-1, 'MA30']):
-            prev_ma7 = df.loc[i-1, 'MA7']
-            prev_ma30 = df.loc[i-1, 'MA30']
+        if i > 0 and not pd.isna(ma7) and not pd.isna(ma30) and not pd.isna(ma7s[i-1]) and not pd.isna(ma30s[i-1]):
+            prev_ma7 = ma7s[i-1]
+            prev_ma30 = ma30s[i-1]
 
             # Golden Cross: MA7 crosses above MA30 -> BUY
             if prev_ma7 <= prev_ma30 and ma7 > ma30:
