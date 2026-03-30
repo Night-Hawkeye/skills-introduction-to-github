@@ -23,28 +23,34 @@ jobs:
         run: curl https://raw.githubusercontent.com/nektos/act/master/install.sh | sudo bash
 
       - name: Create mock create event payload
+        env:
+          REPO_OWNER: ${{ github.repository_owner }}
+          EVENT_REPO_NAME: ${{ github.event.repository.name }}
+          REPO_FULL_NAME: ${{ github.repository }}
         run: |
-          cat << 'EOF' > event.json
-          {
-            "action": "opened",
-            "issue": {
-              "number": 1,
-              "title": "Introduction to GitHub",
-              "user": { "login": "${{ github.repository_owner }}" },
-              "state": "open"
-            },
-            "repository": {
-              "name": "${{ github.event.repository.name }}",
-              "full_name": "${{ github.repository }}",
-              "owner": {
-                "login": "${{ github.repository_owner }}"
+          jq -n \
+            --arg owner "$REPO_OWNER" \
+            --arg repo_name "$EVENT_REPO_NAME" \
+            --arg full_name "$REPO_FULL_NAME" \
+            '{
+              "action": "opened",
+              "issue": {
+                "number": 1,
+                "title": "Introduction to GitHub",
+                "user": { "login": $owner },
+                "state": "open"
+              },
+              "repository": {
+                "name": $repo_name,
+                "full_name": $full_name,
+                "owner": {
+                  "login": $owner
+                }
+              },
+              "sender": {
+                "login": $owner
               }
-            },
-            "sender": {
-              "login": "${{ github.repository_owner }}"
-            }
-          }
-          EOF
+            }' > event.json
 
       - name: Create Mock Issue
         id: create_issue
