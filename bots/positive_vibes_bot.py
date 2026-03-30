@@ -28,6 +28,13 @@ class PositiveVibesBot(ActivityHandler):
                 await turn_context.send_activity("Hello and welcome! I am the Positive Vibes Bot. Send me a message and I'll send some positivity your way!")
 
     async def on_message_activity(self, turn_context: TurnContext):
+        text = turn_context.activity.text
+
+        if not text:
+            await turn_context.send_activity("Please say something!")
+            return
+
+        lower_text = text.lower()
         msg = random.choice(self.positive_messages)
         return await turn_context.send_activity(
             MessageFactory.text(msg)
