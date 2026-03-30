@@ -1,2 +1,5 @@
 pytest
 pyyaml
+pytest-asyncio
+pytest-aiohttp
+pytest-mock
