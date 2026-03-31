@@ -90,8 +90,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Disable current workflow
-        run: gh workflow disable "${{github.workflow}}"
+      - name: Disable current workflow and enable next one
+        run: |
+          gh workflow disable "$WORKFLOW"
+          gh workflow enable "Step 5"
         env:
+          WORKFLOW: ${{github.workflow}}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
