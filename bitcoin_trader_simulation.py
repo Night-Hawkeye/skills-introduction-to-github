@@ -5,8 +5,7 @@ from datetime import datetime, timedelta
 
 def simulate_bitcoin_prices(days=60, initial_price=50000, volatility=0.04, drift=0.001):
     """Simulate Bitcoin prices using Geometric Brownian Motion."""
-    # Use hardcoded seed to ensure predictable demonstration as requested by the user prompt
-    np.random.seed(42)
+    np.random.seed(secrets.randbits(32))
     prices = [initial_price]
     for _ in range(1, days):
         shock = np.random.normal(0, 1)
