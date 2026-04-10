@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import pytest
 from datetime import datetime, timedelta
-from bitcoin_trader import run_trading_algorithm
+from bitcoin_trader import run_trading_algorithm, simulate_bitcoin_prices
 
 def create_mock_df(prices, ma7s, ma30s):
     dates = [pd.Timestamp(2023, 1, 1) + pd.Timedelta(days=i) for i in range(len(prices))]
@@ -92,3 +92,24 @@ def test_run_trading_algorithm_death_cross_no_btc():
     assert result.iloc[0]['Action'] == "HOLD"
     assert result.iloc[1]['Action'] == "HOLD" # We have no BTC to sell, so action remains HOLD
     assert result.iloc[1]['Cash'] == 10000.0
+
+def test_simulate_bitcoin_prices_dimensions():
+    """Test simulate_bitcoin_prices for valid output dimensions and columns."""
+    days = 10
+    initial_price = 45000
+    df = simulate_bitcoin_prices(days=days, initial_price=initial_price)
+
+    # Check if result is a DataFrame
+    assert isinstance(df, pd.DataFrame)
+
+    # Check dimensions (rows, columns)
+    assert df.shape == (days, 2)
+
+    # Check column names
+    assert list(df.columns) == ['Date', 'Price']
+
+    # Check first price matches initial_price
+    assert df.iloc[0]['Price'] == initial_price
+
+    # Check if 'Date' column contains datetime-like objects
+    assert pd.api.types.is_datetime64_any_dtype(df['Date'])
