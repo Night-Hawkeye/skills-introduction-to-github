@@ -46,7 +46,7 @@ def run_trading_algorithm(df):
 
         action = "HOLD"
 
-        if i > 0 and not pd.isna(ma7) and not pd.isna(ma30) and not pd.isna(ma7s[i-1]) and not pd.isna(ma30s[i-1]):
+        if i >= 30:
             prev_ma7 = ma7s[i-1]
             prev_ma30 = ma30s[i-1]
 
