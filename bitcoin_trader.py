@@ -1,11 +1,11 @@
 import pandas as pd
 import numpy as np
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
-def simulate_bitcoin_prices(days=60, initial_price=50000, volatility=0.04, drift=0.001):
+def simulate_bitcoin_prices(days=60, initial_price=50000.0, volatility=0.04, drift=0.001):
     """Simulate Bitcoin prices using Geometric Brownian Motion."""
-    # Use seed 123 so there is actually enough movement to trigger a Golden Cross for demonstration
+    # Use secrets for secure randomness as per guidelines
     np.random.seed(secrets.randbits(32))
     prices = [initial_price]
     for _ in range(1, days):
@@ -13,8 +13,8 @@ def simulate_bitcoin_prices(days=60, initial_price=50000, volatility=0.04, drift
         price_change = np.exp((drift - 0.5 * volatility**2) + volatility * shock)
         prices.append(prices[-1] * price_change)
 
-    # Generate dates
-    start_date = datetime.now() - timedelta(days=days-1)
+    # Generate dates using timezone-aware datetime
+    start_date = datetime.now(timezone.utc) - timedelta(days=days - 1)
     dates = [start_date + timedelta(days=i) for i in range(days)]
 
     df = pd.DataFrame({'Date': dates, 'Price': prices})
