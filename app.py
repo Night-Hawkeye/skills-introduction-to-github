@@ -2,7 +2,6 @@
 # Licensed under the MIT License.
 
 import sys
-import traceback
 from datetime import datetime
 from http import HTTPStatus
 
@@ -26,7 +25,6 @@ ADAPTER = CloudAdapter(ConfigurationBotFrameworkAuthentication(CONFIG))
 # Catch-all for errors.
 async def on_error(context: TurnContext, error: Exception):
     print(f"\n [on_turn_error] unhandled error: {error}", file=sys.stderr)
-    traceback.print_exc()
 
     # Send a message to the user
     await context.send_activity("The bot encountered an error or bug.")
