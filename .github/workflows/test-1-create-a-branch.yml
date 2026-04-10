@@ -56,8 +56,9 @@ jobs:
         id: create_issue
         run: |
           ISSUE_URL=$(gh issue create --title "Exercise: Mock Issue" --body "Mock issue for act testing" --repo ${{ github.repository }})
-          gh issue comment "$ISSUE_URL" --body "Dummy comment for testing" --repo ${{ github.repository }}
           echo "ISSUE_URL=$ISSUE_URL" >> $GITHUB_ENV
+          sleep 5
+          gh issue comment "$ISSUE_URL" --body "Dummy comment for testing" --repo ${{ github.repository }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
