@@ -55,8 +55,9 @@ jobs:
       - name: Create Mock Issue
         id: create_issue
         run: |
-          ISSUE_URL=$(gh issue create --title "Exercise: Mock Issue" --body "Mock issue for act testing")
-          gh issue comment "$ISSUE_URL" --body "Dummy comment for testing"
+          ISSUE_URL=$(gh issue create --repo ${{ github.repository }} --title "Exercise: Mock Issue" --body "Mock issue for act testing")
+          sleep 5
+          gh issue comment "$ISSUE_URL" --repo ${{ github.repository }} --body "Dummy comment for testing"
           echo "ISSUE_URL=$ISSUE_URL" >> $GITHUB_ENV
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -73,6 +74,6 @@ jobs:
       - name: Close Mock Issue
         if: always()
         run: |
-          gh issue close $ISSUE_URL
+          gh issue close $ISSUE_URL --repo ${{ github.repository }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
