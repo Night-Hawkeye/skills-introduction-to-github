@@ -2,7 +2,33 @@ import pandas as pd
 import numpy as np
 import pytest
 from datetime import datetime, timedelta
-from bitcoin_trader import run_trading_algorithm
+from bitcoin_trader import run_trading_algorithm, calculate_moving_averages
+
+def test_calculate_moving_averages():
+    # Create 35 days of dummy data
+    prices = [float(i * 10) for i in range(1, 36)]
+    dates = [pd.Timestamp(2023, 1, 1) + pd.Timedelta(days=i) for i in range(35)]
+    df = pd.DataFrame({'Date': dates, 'Price': prices})
+
+    result = calculate_moving_averages(df)
+
+    # Check that MA7 is NaN for first 6 days and valid from 7th day
+    assert pd.isna(result['MA7'].iloc[5])
+    assert not pd.isna(result['MA7'].iloc[6])
+
+    # First valid MA7 is average of prices 10, 20, 30, 40, 50, 60, 70 -> 280/7 = 40
+    assert result['MA7'].iloc[6] == 40.0
+
+    # Check that MA30 is NaN for first 29 days and valid from 30th day
+    assert pd.isna(result['MA30'].iloc[28])
+    assert not pd.isna(result['MA30'].iloc[29])
+
+    # First valid MA30 is average of prices 10 to 300 -> sum is 4650, 4650/30 = 155
+    assert result['MA30'].iloc[29] == 155.0
+
+    # Assert columns exist
+    assert 'MA7' in result.columns
+    assert 'MA30' in result.columns
 
 def create_mock_df(prices, ma7s, ma30s):
     dates = [pd.Timestamp(2023, 1, 1) + pd.Timedelta(days=i) for i in range(len(prices))]
