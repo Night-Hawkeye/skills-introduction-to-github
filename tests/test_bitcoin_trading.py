@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import pytest
 from datetime import datetime, timedelta
-from bitcoin_trader import run_trading_algorithm, simulate_bitcoin_prices
+from bitcoin_trader import run_trading_algorithm, simulate_bitcoin_prices, calculate_moving_averages
 
 def create_mock_df(prices, ma7s, ma30s):
     dates = [pd.Timestamp(2023, 1, 1) + pd.Timedelta(days=i) for i in range(len(prices))]
@@ -113,3 +113,29 @@ def test_simulate_bitcoin_prices_dimensions():
 
     # Check if 'Date' column contains datetime-like objects
     assert pd.api.types.is_datetime64_any_dtype(df['Date'])
+
+def test_calculate_moving_averages():
+    """Test calculate_moving_averages logic."""
+    # Create a mock DataFrame with 30 prices (1 to 30)
+    prices = list(range(1, 31))
+    dates = [pd.Timestamp(2023, 1, 1) + pd.Timedelta(days=i) for i in range(len(prices))]
+    df = pd.DataFrame({'Date': pd.Series(dates), 'Price': prices})
+
+    # Run the function
+    result_df = calculate_moving_averages(df)
+
+    # Check that columns were added
+    assert 'MA7' in result_df.columns
+    assert 'MA30' in result_df.columns
+
+    # First 6 elements of MA7 should be NaN
+    assert result_df['MA7'].iloc[:6].isna().all()
+
+    # 7th element of MA7 should be average of 1, 2, 3, 4, 5, 6, 7 -> 28 / 7 = 4.0
+    assert result_df['MA7'].iloc[6] == 4.0
+
+    # First 29 elements of MA30 should be NaN
+    assert result_df['MA30'].iloc[:29].isna().all()
+
+    # 30th element of MA30 should be average of 1 to 30 -> (30 * 31 / 2) / 30 = 15.5
+    assert result_df['MA30'].iloc[29] == 15.5
