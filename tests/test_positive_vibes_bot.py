@@ -36,8 +36,8 @@ async def test_on_message_activity_none_text(bot, turn_context):
 async def test_on_message_activity_with_text(bot, turn_context):
     turn_context.activity.text = "Hello"
 
-    # We mock random.choice to make the test deterministic
-    with patch("bots.positive_vibes_bot.random.choice", return_value="You are awesome!"):
+    # We mock secrets.choice to make the test deterministic
+    with patch("bots.positive_vibes_bot.secrets.choice", return_value="You are awesome!"):
         await bot.on_message_activity(turn_context)
 
     turn_context.send_activity.assert_called_once()

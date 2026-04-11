@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
-import random
+import secrets
 from botbuilder.core import ActivityHandler, MessageFactory, TurnContext
 from botbuilder.schema import ChannelAccount
 
@@ -35,7 +35,7 @@ class PositiveVibesBot(ActivityHandler):
             return
 
         lower_text = text.lower()
-        msg = random.choice(self.positive_messages)
+        msg = secrets.choice(self.positive_messages)
         return await turn_context.send_activity(
             MessageFactory.text(msg)
         )
