@@ -2,7 +2,44 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 import pytest
-from simulate_bitcoin_trading import run_trading_algorithm
+from simulate_bitcoin_trading import run_trading_algorithm, calculate_moving_averages
+
+def test_calculate_moving_averages():
+    """Test that moving averages are calculated correctly."""
+    prices = [10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0]
+    dates = [datetime.today() - timedelta(days=10 - i) for i in range(10)]
+    df = pd.DataFrame({'Date': dates, 'Price': prices})
+
+    result_df = calculate_moving_averages(df)
+
+    # MA7 for index 6 (7th element) should be mean of [10, 20, 30, 40, 50, 60, 70] = 40.0
+    assert result_df.loc[6, 'MA7'] == 40.0
+    # MA7 for index 5 should be NaN
+    assert pd.isna(result_df.loc[5, 'MA7'])
+
+    # MA30 for index 9 should be NaN since we only have 10 data points
+    assert pd.isna(result_df.loc[9, 'MA30'])
+
+def test_calculate_moving_averages_full_window():
+    """Test MA30 calculation with enough data."""
+    prices = [float(i) for i in range(1, 32)] # 31 points
+    dates = [datetime.today() - timedelta(days=31 - i) for i in range(31)]
+    df = pd.DataFrame({'Date': dates, 'Price': prices})
+
+    result_df = calculate_moving_averages(df)
+
+    # MA30 for index 29 (30th element) should be mean of 1..30 = 15.5
+    assert np.isclose(result_df.loc[29, 'MA30'], 15.5)
+    # MA30 for index 30 (31st element) should be mean of 2..31 = 16.5
+    assert np.isclose(result_df.loc[30, 'MA30'], 16.5)
+
+def test_calculate_moving_averages_empty():
+    """Test that calculating moving averages on an empty DataFrame works."""
+    df = pd.DataFrame({'Date': [], 'Price': []})
+    result_df = calculate_moving_averages(df)
+    assert 'MA7' in result_df.columns
+    assert 'MA30' in result_df.columns
+    assert len(result_df) == 0
 
 def test_run_trading_algorithm_golden_cross():
     """Test that the algorithm buys on a Golden Cross."""
