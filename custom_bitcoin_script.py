@@ -5,10 +5,10 @@ from datetime import datetime, timedelta, timezone
 
 def simulate_bitcoin_prices(days=60, initial_price=50000, volatility=0.04, drift=0.001):
     """Simulate Bitcoin prices using Geometric Brownian Motion."""
-    np.random.seed(secrets.randbits(32))
+    rng = np.random.default_rng(secrets.randbits(32))
 
     # Vectorized price generation
-    shocks = np.random.normal(0, 1, days - 1)
+    shocks = rng.normal(0, 1, days - 1)
     price_changes = np.exp((drift - 0.5 * volatility**2) + volatility * shocks)
     prices = np.zeros(days)
     prices[0] = initial_price
