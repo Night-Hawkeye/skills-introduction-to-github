@@ -1,19 +1,19 @@
 import pandas as pd
 import numpy as np
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 def simulate_bitcoin_prices(days=60, initial_price=50000, volatility=0.04, drift=0.001):
     """Simulate Bitcoin prices using Geometric Brownian Motion."""
     # Use seed 123 so there is actually enough movement to trigger a Golden Cross for demonstration
-    np.random.seed(secrets.randbits(32))
+    rng = np.random.default_rng(123)
 
-    shocks = np.random.normal(0, 1, days - 1)
+    shocks = rng.normal(0, 1, days - 1)
     price_changes = np.exp((drift - 0.5 * volatility**2) + volatility * shocks)
     prices = initial_price * np.cumprod(np.insert(price_changes, 0, 1.0))
 
-    # Generate dates
-    start_date = datetime.now() - timedelta(days=days-1)
+    # Fast datetime generation
+    start_date = datetime.now(timezone.utc) - timedelta(days=days-1)
     dates = pd.date_range(start=start_date, periods=days)
 
     df = pd.DataFrame({'Date': dates, 'Price': prices})
@@ -37,7 +37,8 @@ def run_trading_algorithm(df):
     ma7s = df['MA7'].values
     ma30s = df['MA30'].values
 
-    valid_mask = pd.notna(ma7s) & pd.notna(ma30s)
+    # Pre compute boolean mask to safely handle NaNs
+    valid = pd.notna(ma7s) & pd.notna(ma30s)
 
     for i in range(len(df)):
         date = dates[i]
@@ -47,7 +48,7 @@ def run_trading_algorithm(df):
 
         action = "HOLD"
 
-        if i > 0 and valid_mask[i] and valid_mask[i-1]:
+        if i > 0 and valid[i] and valid[i-1]:
             prev_ma7 = ma7s[i-1]
             prev_ma30 = ma30s[i-1]
 
