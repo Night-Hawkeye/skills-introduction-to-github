@@ -75,7 +75,7 @@ jobs:
           ACT_PATH=$(find . -name act -type f -executable | head -n 1)
           sed -i 's/needs: \[find_exercise, check_step_work\]/needs: \[check_step_work\]/g' .github/workflows/1-create-a-branch.yml
           sed -i 's/needs: find_exercise//g' .github/workflows/1-create-a-branch.yml
-          sed -i "s|\${{ '\${{' }} needs.find_exercise.outputs.issue-url }}|$ISSUE_URL|g" .github/workflows/1-create-a-branch.yml
+          sed -i "s|\${{ '${{' }} needs.find_exercise.outputs.issue-url }}|$ISSUE_URL|g" .github/workflows/1-create-a-branch.yml
 
           $ACT_PATH -j check_step_work \
             -e event.json \
