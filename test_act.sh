@@ -20,4 +20,4 @@ cat << 'JSON' > event.json
   }
 }
 JSON
-./bin/act -j check_step_work -e event.json -W .github/workflows/1-create-a-branch.yml --secret GITHUB_TOKEN=${GITHUB_TOKEN:-""} -P ubuntu-latest=catthehacker/ubuntu:act-latest
+./bin/act -j check_step_work -e event.json -W .github/workflows/1-create-a-branch.yml --secret GITHUB_TOKEN=${GITHUB_TOKEN:-""} -P ubuntu-latest=catthehacker/ubuntu:full-latest
