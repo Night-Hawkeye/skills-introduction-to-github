@@ -1,4 +1,3 @@
-import pytest
 import numpy as np
 import secrets
 from datetime import datetime, timedelta
