@@ -1,5 +1,3 @@
-import pytest
-import pandas as pd
 from bitcoin_trader import simulate_bitcoin_prices
 
 def test_simulate_bitcoin_prices():
