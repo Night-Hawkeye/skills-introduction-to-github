@@ -5,16 +5,18 @@ from datetime import datetime, timedelta
 
 def simulate_bitcoin_prices(days=60, initial_price=50000, volatility=0.04, drift=0.001):
     """Simulate Bitcoin prices using Geometric Brownian Motion."""
-    np.random.seed(secrets.randbits(32))
-    prices = [initial_price]
-    for _ in range(1, days):
-        shock = np.random.normal(0, 1)
-        price_change = np.exp((drift - 0.5 * volatility**2) + volatility * shock)
-        prices.append(prices[-1] * price_change)
+    rng = np.random.default_rng(secrets.randbits(32))
+
+    if days <= 1:
+        prices = np.array([initial_price])
+    else:
+        shocks = rng.normal(0, 1, size=days-1)
+        price_changes = np.exp((drift - 0.5 * volatility**2) + volatility * shocks)
+        prices = np.concatenate(([initial_price], initial_price * np.cumprod(price_changes)))
 
     # Generate dates
     start_date = datetime.now() - timedelta(days=days-1)
-    dates = [start_date + timedelta(days=i) for i in range(days)]
+    dates = pd.date_range(start=start_date, periods=days)
 
     df = pd.DataFrame({'Date': dates, 'Price': prices})
     return df
@@ -45,7 +47,7 @@ def run_trading_algorithm(df):
 
         action = "HOLD"
 
-        if i > 0 and not pd.isna(ma7) and not pd.isna(ma30) and not pd.isna(ma7s[i-1]) and not pd.isna(ma30s[i-1]):
+        if i >= 30:
             prev_ma7 = ma7s[i-1]
             prev_ma30 = ma30s[i-1]
 
