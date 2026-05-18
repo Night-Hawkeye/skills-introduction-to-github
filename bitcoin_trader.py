@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-import secrets
 from datetime import datetime, timedelta, timezone
 
 def simulate_bitcoin_prices(days=60, initial_price=50000, volatility=0.04, drift=0.001):
