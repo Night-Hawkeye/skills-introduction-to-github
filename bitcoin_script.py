@@ -5,18 +5,16 @@ from datetime import datetime, timedelta, timezone
 
 def simulate_bitcoin_prices(days=60, initial_price=50000.0, volatility=0.04, drift=0.001):
     """Simulate Bitcoin prices using Geometric Brownian Motion."""
-    # Use secrets for secure randomness
-    np.random.seed(secrets.randbits(32))
+    # Use secure randomness
+    rng = np.random.default_rng(secrets.randbits(32))
 
-    prices = [initial_price]
-    for _ in range(1, days):
-        shock = np.random.normal(0, 1)
-        price_change = np.exp((drift - 0.5 * volatility**2) + volatility * shock)
-        prices.append(prices[-1] * price_change)
+    shocks = rng.normal(0, 1, days - 1)
+    price_changes = np.exp((drift - 0.5 * volatility**2) + volatility * shocks)
+    prices = initial_price * np.cumprod(np.insert(price_changes, 0, 1.0))
 
     # Generate dates using timezone-aware datetime
     start_date = datetime.now(timezone.utc) - timedelta(days=days - 1)
-    dates = [start_date + timedelta(days=i) for i in range(days)]
+    dates = pd.date_range(start=start_date, periods=days)
 
     df = pd.DataFrame({'Date': dates, 'Price': prices})
     return df
