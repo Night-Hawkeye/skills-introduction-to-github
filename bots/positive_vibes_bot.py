@@ -34,7 +34,6 @@ class PositiveVibesBot(ActivityHandler):
             await turn_context.send_activity("Please say something!")
             return
 
-        lower_text = text.lower()
         msg = secrets.choice(self.positive_messages)
         return await turn_context.send_activity(
             MessageFactory.text(msg)
