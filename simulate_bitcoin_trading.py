@@ -16,7 +16,7 @@ def simulate_bitcoin_prices(days=60, initial_price=50000.0, volatility=0.04, dri
 
     # Generate dates using timezone-aware datetime
     start_date = datetime.now(timezone.utc) - timedelta(days=days - 1)
-    dates = [start_date + timedelta(days=i) for i in range(days)]
+    dates = pd.date_range(start=start_date, periods=days)
 
     df = pd.DataFrame({'Date': dates, 'Price': prices})
     return df
