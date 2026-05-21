@@ -36,7 +36,7 @@ def run_trading_algorithm(df):
     ma7s = df['MA7'].values
     ma30s = df['MA30'].values
 
-    valid_mask = pd.notna(ma7s) & pd.notna(ma30s)
+    valid = pd.notna(ma7s) & pd.notna(ma30s)
 
     for i in range(len(df)):
         date = dates[i]
@@ -46,7 +46,7 @@ def run_trading_algorithm(df):
 
         action = "HOLD"
 
-        if i > 0 and valid_mask[i] and valid_mask[i-1]:
+        if i > 0 and valid[i] and valid[i-1]:
             prev_ma7 = ma7s[i-1]
             prev_ma30 = ma30s[i-1]
 
