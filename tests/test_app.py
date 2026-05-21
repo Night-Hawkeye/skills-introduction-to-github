@@ -6,11 +6,23 @@ from unittest.mock import AsyncMock
 
 from app import messages
 
+from botbuilder.core.integration import aiohttp_error_middleware
+
 @pytest_asyncio.fixture
 async def cli(aiohttp_client):
-    app = web.Application()
+    app = web.Application(middlewares=[aiohttp_error_middleware])
     app.router.add_post("/api/messages", messages)
     return await aiohttp_client(app)
+
+@pytest.mark.asyncio
+async def test_messages_exception(cli, mocker):
+    """Test that an exception during processing returns 500 INTERNAL_SERVER_ERROR"""
+    mock_process = mocker.patch("app.ADAPTER.process", new_callable=AsyncMock)
+    mock_process.side_effect = Exception("Test exception")
+
+    resp = await cli.post("/api/messages", json={"type": "message", "text": "hello"}, headers={"Content-Type": "application/json"})
+
+    assert resp.status == HTTPStatus.INTERNAL_SERVER_ERROR
 
 @pytest.mark.asyncio
 async def test_messages_unsupported_media_type(cli):
