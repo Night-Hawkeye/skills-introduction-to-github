@@ -8,11 +8,13 @@ def simulate_bitcoin_prices(days=60, initial_price=50000.0, volatility=0.04, dri
     # Use secrets for secure randomness
     np.random.seed(secrets.randbits(32))
 
-    prices = [initial_price]
-    for _ in range(1, days):
-        shock = np.random.normal(0, 1)
-        price_change = np.exp((drift - 0.5 * volatility**2) + volatility * shock)
-        prices.append(prices[-1] * price_change)
+    days_to_simulate = max(0, days - 1)
+    if days_to_simulate > 0:
+        shocks = np.random.normal(0, 1, days_to_simulate)
+        price_changes = np.exp((drift - 0.5 * volatility**2) + volatility * shocks)
+        prices = np.concatenate(([initial_price], initial_price * np.cumprod(price_changes))).tolist()
+    else:
+        prices = [initial_price]
 
     # Generate dates using timezone-aware datetime
     start_date = datetime.now(timezone.utc) - timedelta(days=days - 1)
