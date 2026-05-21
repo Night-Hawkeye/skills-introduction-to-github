@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
+import asyncio
 import secrets
 from botbuilder.core import ActivityHandler, MessageFactory, TurnContext
 from botbuilder.schema import ChannelAccount
@@ -23,9 +24,13 @@ class PositiveVibesBot(ActivityHandler):
     async def on_members_added_activity(
         self, members_added: [ChannelAccount], turn_context: TurnContext
     ):
+        tasks = []
         for member in members_added:
             if member.id != turn_context.activity.recipient.id:
-                await turn_context.send_activity("Hello and welcome! I am the Positive Vibes Bot. Send me a message and I'll send some positivity your way!")
+                tasks.append(turn_context.send_activity("Hello and welcome! I am the Positive Vibes Bot. Send me a message and I'll send some positivity your way!"))
+
+        if tasks:
+            await asyncio.gather(*tasks)
 
     async def on_message_activity(self, turn_context: TurnContext):
         text = turn_context.activity.text
