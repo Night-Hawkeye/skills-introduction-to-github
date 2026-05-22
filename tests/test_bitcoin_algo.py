@@ -2,7 +2,7 @@ import pytest
 import pandas as pd
 import numpy as np
 from datetime import datetime
-from bitcoin_algo import run_trading_algorithm
+from standalone_bitcoin_sim import run_trading_algorithm
 
 def test_run_trading_algorithm_golden_cross_no_cash():
     """Test that Golden Cross with no cash results in HOLD instead of BUY."""
