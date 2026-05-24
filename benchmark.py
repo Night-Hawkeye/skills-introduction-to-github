@@ -1,8 +1,5 @@
 import timeit
 import numpy as np
-import pandas as pd
-import secrets
-from datetime import datetime, timedelta
 
 def original(days=10000, initial_price=50000.0, volatility=0.04, drift=0.001):
     np.random.seed(42)
