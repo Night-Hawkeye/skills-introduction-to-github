@@ -26,58 +26,80 @@ def calculate_moving_averages(df):
 
 def run_trading_algorithm(df):
     """Implement Golden Cross trading algorithm."""
+    dates = df['Date'].dt.strftime('%Y-%m-%d').tolist()
+    prices = df['Price'].tolist()
+    ma7s = df['MA7'].tolist()
+    ma30s = df['MA30'].tolist()
+    valid = (pd.notna(df['MA7']) & pd.notna(df['MA30'])).tolist()
+
+    n = len(df)
+
+    if n == 0:
+        return pd.DataFrame({
+            'Date': dates,
+            'Price': prices,
+            'MA7': ma7s,
+            'MA30': ma30s,
+            'Action': [],
+            'Cash': [],
+            'BTC': [],
+            'Portfolio Value': []
+        })
+
+    actions = ["HOLD"] * n
+    cashes = [0.0] * n
+    btcs = [0.0] * n
+    portfolios = [0.0] * n
+
     cash = 10000.0  # Initial capital
     btc = 0.0
 
-    ledger = []
+    prev_ma7_val = ma7s[0]
+    prev_ma30_val = ma30s[0]
+    prev_valid = valid[0]
 
-    dates = df['Date'].dt.strftime('%Y-%m-%d').values
-    prices = df['Price'].values
-    ma7s = df['MA7'].values
-    ma30s = df['MA30'].values
-
-    # Pre compute boolean mask to safely handle NaNs
-    valid = pd.notna(ma7s) & pd.notna(ma30s)
-
-    for i in range(len(df)):
-        date = dates[i]
+    for i in range(n):
         price = prices[i]
         ma7 = ma7s[i]
         ma30 = ma30s[i]
+        v = valid[i]
 
         action = "HOLD"
 
-        if i > 0 and valid[i] and valid[i-1]:
-            prev_ma7 = ma7s[i-1]
-            prev_ma30 = ma30s[i-1]
-
+        if i > 0 and v and prev_valid:
             # Golden Cross: MA7 crosses above MA30 -> BUY
-            if prev_ma7 <= prev_ma30 and ma7 > ma30:
+            if prev_ma7_val <= prev_ma30_val and ma7 > ma30:
                 if cash > 0:
                     btc = cash / price
                     cash = 0.0
                     action = f"BUY {btc:.4f} BTC"
 
             # Death Cross: MA7 crosses below MA30 -> SELL
-            elif prev_ma7 >= prev_ma30 and ma7 < ma30:
+            elif prev_ma7_val >= prev_ma30_val and ma7 < ma30:
                 if btc > 0:
                     cash = btc * price
                     action = f"SELL {btc:.4f} BTC"
                     btc = 0.0
 
-        portfolio_value = cash + (btc * price)
-        ledger.append({
-            'Date': date,
-            'Price': price,
-            'MA7': ma7,
-            'MA30': ma30,
-            'Action': action,
-            'Cash': cash,
-            'BTC': btc,
-            'Portfolio Value': portfolio_value
-        })
+        actions[i] = action
+        cashes[i] = cash
+        btcs[i] = btc
+        portfolios[i] = cash + (btc * price)
 
-    return pd.DataFrame(ledger)
+        prev_ma7_val = ma7
+        prev_ma30_val = ma30
+        prev_valid = v
+
+    return pd.DataFrame({
+        'Date': dates,
+        'Price': prices,
+        'MA7': ma7s,
+        'MA30': ma30s,
+        'Action': actions,
+        'Cash': cashes,
+        'BTC': btcs,
+        'Portfolio Value': portfolios
+    })
 
 if __name__ == "__main__":
     print("Simulating 60 days of Bitcoin prices...")
