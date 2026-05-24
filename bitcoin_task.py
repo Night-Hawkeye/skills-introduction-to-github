@@ -33,54 +33,73 @@ def run_trading_algorithm(df):
 
     ledger = []
 
-    # Vectorize format string to minimize per iteration overhead
+    # Pre-extract numpy arrays
     dates = df['Date'].dt.strftime('%Y-%m-%d').values
-    prices = df['Price'].values
-    ma7s = df['MA7'].values
-    ma30s = df['MA30'].values
+    prices = df['Price'].to_numpy()
+    ma7 = df['MA7'].to_numpy()
+    ma30 = df['MA30'].to_numpy()
 
-    # Pre compute boolean mask to avoid element-wise pd.isna() inside the loop
-    valid_mask = pd.notna(ma7s) & pd.notna(ma30s)
+    n = len(df)
 
-    for i in range(len(df)):
-        date = dates[i]
-        price = prices[i]
-        ma7 = ma7s[i]
-        ma30 = ma30s[i]
+    # Calculate shifted values for previous day
+    prev_ma7 = np.roll(ma7, 1)
+    prev_ma30 = np.roll(ma30, 1)
 
-        action = "HOLD"
+    # Find valid indices
+    valid_mask = ~np.isnan(ma7) & ~np.isnan(ma30) & ~np.isnan(prev_ma7) & ~np.isnan(prev_ma30)
+    if n > 0:
+        valid_mask[0] = False
 
-        if i > 0 and valid_mask[i] and valid_mask[i-1]:
-            prev_ma7 = ma7s[i-1]
-            prev_ma30 = ma30s[i-1]
+    # Find buy and sell signals
+    buy_signals = valid_mask & (prev_ma7 <= prev_ma30) & (ma7 > ma30)
+    sell_signals = valid_mask & (prev_ma7 >= prev_ma30) & (ma7 < ma30)
 
-            # Golden Cross: MA7 crosses above MA30 -> BUY
-            if prev_ma7 <= prev_ma30 and ma7 > ma30:
-                if cash > 0:
-                    btc = cash / price
-                    cash = 0.0
-                    action = f"BUY {btc:.4f} BTC"
+    signal_indices = np.nonzero(buy_signals | sell_signals)[0]
 
-            # Death Cross: MA7 crosses below MA30 -> SELL
-            elif prev_ma7 >= prev_ma30 and ma7 < ma30:
-                if btc > 0:
-                    cash = btc * price
-                    action = f"SELL {btc:.4f} BTC"
-                    btc = 0.0
+    # Pre-allocate output arrays
+    cash_arr = np.empty(n, dtype=np.float64)
+    btc_arr = np.empty(n, dtype=np.float64)
+    action_arr = np.full(n, "HOLD", dtype=object)
 
-        portfolio_value = cash + (btc * price)
-        ledger.append({
-            'Date': date,
-            'Price': price,
-            'MA7': ma7,
-            'MA30': ma30,
-            'Action': action,
-            'Cash': cash,
-            'BTC': btc,
-            'Portfolio Value': portfolio_value
-        })
+    last_idx = 0
+    for idx in signal_indices:
+        # Fill arrays up to idx with current cash/btc
+        cash_arr[last_idx:idx] = cash
+        btc_arr[last_idx:idx] = btc
 
-    return pd.DataFrame(ledger)
+        if buy_signals[idx] and cash > 0: # BUY
+            price = prices[idx]
+            btc = cash / price
+            cash = 0.0
+            action_arr[idx] = f"BUY {btc:.4f} BTC"
+        elif sell_signals[idx] and btc > 0: # SELL
+            price = prices[idx]
+            cash = btc * price
+            action_arr[idx] = f"SELL {btc:.4f} BTC"
+            btc = 0.0
+
+        cash_arr[idx] = cash
+        btc_arr[idx] = btc
+        last_idx = idx + 1
+
+    # Fill remaining
+    cash_arr[last_idx:] = cash
+    btc_arr[last_idx:] = btc
+
+    # Portfolio value
+    portfolio_value = cash_arr + (btc_arr * prices)
+
+    # Create final dataframe using a dictionary
+    return pd.DataFrame({
+        'Date': dates,
+        'Price': prices,
+        'MA7': ma7,
+        'MA30': ma30,
+        'Action': action_arr,
+        'Cash': cash_arr,
+        'BTC': btc_arr,
+        'Portfolio Value': portfolio_value
+    })
 
 if __name__ == "__main__":
     print("Simulating 60 days of Bitcoin prices...")
