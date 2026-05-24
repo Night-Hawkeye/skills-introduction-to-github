@@ -26,59 +26,65 @@ def calculate_moving_averages(df):
 
 def run_trading_algorithm(df):
     """Implement Golden Cross trading algorithm."""
-    cash = 10000.0  # Initial capital
-    btc = 0.0
-
-    ledger = []
-
-    # Use .values for performant loop over DataFrame as per performance guidelines
     dates = df['Date'].dt.strftime('%Y-%m-%d').values
     prices = df['Price'].values
-    ma7s = df['MA7'].values
-    ma30s = df['MA30'].values
+    ma7 = df['MA7'].values
+    ma30 = df['MA30'].values
 
-    # Pre-compute valid mask
-    valid = pd.notna(ma7s) & pd.notna(ma30s)
+    valid = pd.notna(ma7) & pd.notna(ma30)
+    valid_prev = np.roll(valid, 1)
+    valid_prev[0] = False
+    mask = valid & valid_prev
 
-    for i in range(len(df)):
-        date = dates[i]
-        price = prices[i]
-        ma7 = ma7s[i]
-        ma30 = ma30s[i]
+    prev_ma7 = np.roll(ma7, 1)
+    prev_ma30 = np.roll(ma30, 1)
 
-        action = "HOLD"
+    buy_signal = mask & (prev_ma7 <= prev_ma30) & (ma7 > ma30)
+    sell_signal = mask & (prev_ma7 >= prev_ma30) & (ma7 < ma30)
 
-        if i > 0 and valid[i] and valid[i-1]:
-            prev_ma7 = ma7s[i-1]
-            prev_ma30 = ma30s[i-1]
+    # Calculate state (1 for holding BTC, 0 for holding Cash)
+    s = pd.Series(np.nan, index=df.index)
+    s[buy_signal] = 1
+    s[sell_signal] = 0
+    s = s.ffill().fillna(0)
+    state_ffill = s.values
 
-            # Golden Cross: MA7 crosses above MA30 -> BUY
-            if prev_ma7 <= prev_ma30 and ma7 > ma30:
-                if cash > 0:
-                    btc = cash / price
-                    cash = 0.0
-                    action = f"BUY {btc:.4f} BTC"
+    # Calculate returns
+    price_ratio = np.ones(len(df))
+    price_ratio[1:] = prices[1:] / prices[:-1]
 
-            # Death Cross: MA7 crosses below MA30 -> SELL
-            elif prev_ma7 >= prev_ma30 and ma7 < ma30:
-                if btc > 0:
-                    cash = btc * price
-                    action = f"SELL {btc:.4f} BTC"
-                    btc = 0.0
+    port_returns = np.ones(len(df))
+    port_returns[1:] = np.where(state_ffill[:-1] == 1, price_ratio[1:], 1.0)
 
-        portfolio_value = cash + (btc * price)
-        ledger.append({
-            'Date': date,
-            'Price': price,
-            'MA7': ma7,
-            'MA30': ma30,
-            'Action': action,
-            'Cash': cash,
-            'BTC': btc,
-            'Portfolio Value': portfolio_value
-        })
+    pv = 10000.0 * np.cumprod(port_returns)
 
-    return pd.DataFrame(ledger)
+    # Calculate Cash and BTC
+    calc_cash = np.where(state_ffill == 1, 0.0, pv)
+    calc_btc = np.where(state_ffill == 1, pv / prices, 0.0)
+
+    # Generate actions
+    state_change = np.zeros(len(df))
+    state_change[1:] = state_ffill[1:] - state_ffill[:-1]
+    is_buy = state_change == 1
+    is_sell = state_change == -1
+
+    actions = np.full(len(df), "HOLD", dtype=object)
+
+    for i in np.where(is_buy)[0]:
+        actions[i] = f"BUY {calc_btc[i]:.4f} BTC"
+    for i in np.where(is_sell)[0]:
+        actions[i] = f"SELL {calc_btc[i-1]:.4f} BTC"
+
+    return pd.DataFrame({
+        'Date': dates,
+        'Price': prices,
+        'MA7': ma7,
+        'MA30': ma30,
+        'Action': actions,
+        'Cash': calc_cash,
+        'BTC': calc_btc,
+        'Portfolio Value': pv
+    })
 
 if __name__ == "__main__":
     print("Simulating 60 days of Bitcoin prices...")
