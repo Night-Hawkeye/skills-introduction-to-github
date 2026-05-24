@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from http import HTTPStatus
 
 from aiohttp import web
@@ -36,7 +36,7 @@ async def on_error(context: TurnContext, error: Exception):
         trace_activity = Activity(
             label="TurnError",
             name="on_turn_error Trace",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             type=ActivityTypes.trace,
             value=f"{error}",
             value_type="https://www.botframework.com/schemas/error",
