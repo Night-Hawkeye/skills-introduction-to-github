@@ -25,57 +25,74 @@ def calculate_moving_averages(df):
 
 def run_trading_algorithm(df):
     """Implement Golden Cross trading algorithm."""
-    cash = 10000.0  # Initial capital
-    btc = 0.0
-
-    ledger = []
-
     dates = df['Date'].dt.strftime('%Y-%m-%d').values
     prices = df['Price'].values
     ma7s = df['MA7'].values
     ma30s = df['MA30'].values
 
+    n = len(df)
+
+    cash = 10000.0
+    btc = 0.0
+
+    actions = np.full(n, "HOLD", dtype=object)
+
     valid = pd.notna(ma7s) & pd.notna(ma30s)
 
-    for i in range(len(df)):
-        date = dates[i]
+    buys = np.zeros(n, dtype=bool)
+    sells = np.zeros(n, dtype=bool)
+
+    valid_cross = valid[1:] & valid[:-1]
+    prev_ma7s = ma7s[:-1]
+    prev_ma30s = ma30s[:-1]
+    curr_ma7s = ma7s[1:]
+    curr_ma30s = ma30s[1:]
+
+    buys[1:] = valid_cross & (prev_ma7s <= prev_ma30s) & (curr_ma7s > curr_ma30s)
+    sells[1:] = valid_cross & (prev_ma7s >= prev_ma30s) & (curr_ma7s < curr_ma30s)
+
+    event_indices = np.where(buys | sells)[0]
+
+    cash_arr = np.zeros(n, dtype=np.float64)
+    btc_arr = np.zeros(n, dtype=np.float64)
+
+    last_idx = 0
+
+    for i in event_indices:
+        cash_arr[last_idx:i] = cash
+        btc_arr[last_idx:i] = btc
+
         price = prices[i]
-        ma7 = ma7s[i]
-        ma30 = ma30s[i]
 
-        action = "HOLD"
+        if buys[i] and cash > 0:
+            btc = cash / price
+            cash = 0.0
+            actions[i] = f"BUY {btc:.4f} BTC"
+        elif sells[i] and btc > 0:
+            cash = btc * price
+            actions[i] = f"SELL {btc:.4f} BTC"
+            btc = 0.0
 
-        if i > 0 and valid[i] and valid[i-1]:
-            prev_ma7 = ma7s[i-1]
-            prev_ma30 = ma30s[i-1]
+        cash_arr[i] = cash
+        btc_arr[i] = btc
+        last_idx = i + 1
 
-            # Golden Cross: MA7 crosses above MA30 -> BUY
-            if prev_ma7 <= prev_ma30 and ma7 > ma30:
-                if cash > 0:
-                    btc = cash / price
-                    cash = 0.0
-                    action = f"BUY {btc:.4f} BTC"
+    if last_idx < n:
+        cash_arr[last_idx:] = cash
+        btc_arr[last_idx:] = btc
 
-            # Death Cross: MA7 crosses below MA30 -> SELL
-            elif prev_ma7 >= prev_ma30 and ma7 < ma30:
-                if btc > 0:
-                    cash = btc * price
-                    action = f"SELL {btc:.4f} BTC"
-                    btc = 0.0
+    portfolio_value = cash_arr + (btc_arr * prices)
 
-        portfolio_value = cash + (btc * price)
-        ledger.append({
-            'Date': date,
-            'Price': price,
-            'MA7': ma7,
-            'MA30': ma30,
-            'Action': action,
-            'Cash': cash,
-            'BTC': btc,
-            'Portfolio Value': portfolio_value
-        })
-
-    return pd.DataFrame(ledger)
+    return pd.DataFrame({
+        'Date': dates,
+        'Price': prices,
+        'MA7': ma7s,
+        'MA30': ma30s,
+        'Action': actions,
+        'Cash': cash_arr,
+        'BTC': btc_arr,
+        'Portfolio Value': portfolio_value
+    })
 
 if __name__ == "__main__":
     print("Simulating 60 days of Bitcoin prices...")
