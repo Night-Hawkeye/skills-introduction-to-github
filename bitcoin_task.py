@@ -28,59 +28,95 @@ def calculate_moving_averages(df):
 
 def run_trading_algorithm(df):
     """Implement Golden Cross trading algorithm."""
-    cash = 10000.0  # Initial capital
-    btc = 0.0
+    initial_cash = 10000.0
 
-    ledger = []
-
-    # Vectorize format string to minimize per iteration overhead
     dates = df['Date'].dt.strftime('%Y-%m-%d').values
     prices = df['Price'].values
-    ma7s = df['MA7'].values
-    ma30s = df['MA30'].values
+    ma7 = df['MA7'].values
+    ma30 = df['MA30'].values
 
-    # Pre compute boolean mask to avoid element-wise pd.isna() inside the loop
-    valid_mask = pd.notna(ma7s) & pd.notna(ma30s)
+    valid = pd.notna(ma7) & pd.notna(ma30)
 
-    for i in range(len(df)):
-        date = dates[i]
-        price = prices[i]
-        ma7 = ma7s[i]
-        ma30 = ma30s[i]
+    prev_ma7 = np.roll(ma7, 1)
+    prev_ma30 = np.roll(ma30, 1)
+    prev_valid = np.roll(valid, 1)
+    prev_valid[0] = False
 
-        action = "HOLD"
+    buy_signal = (prev_ma7 <= prev_ma30) & (ma7 > ma30) & valid & prev_valid
+    sell_signal = (prev_ma7 >= prev_ma30) & (ma7 < ma30) & valid & prev_valid
 
-        if i > 0 and valid_mask[i] and valid_mask[i-1]:
-            prev_ma7 = ma7s[i-1]
-            prev_ma30 = ma30s[i-1]
+    signals = pd.Series(np.nan, index=df.index)
+    signals.loc[buy_signal] = 1
+    signals.loc[sell_signal] = 0
+    position = signals.ffill().fillna(0).values
 
-            # Golden Cross: MA7 crosses above MA30 -> BUY
-            if prev_ma7 <= prev_ma30 and ma7 > ma30:
-                if cash > 0:
-                    btc = cash / price
-                    cash = 0.0
-                    action = f"BUY {btc:.4f} BTC"
+    prev_position = np.roll(position, 1)
+    prev_position[0] = 0
 
-            # Death Cross: MA7 crosses below MA30 -> SELL
-            elif prev_ma7 >= prev_ma30 and ma7 < ma30:
-                if btc > 0:
-                    cash = btc * price
-                    action = f"SELL {btc:.4f} BTC"
-                    btc = 0.0
+    btc_returns = np.zeros(len(df))
+    prev_prices = prices[:-1]
+    curr_prices = prices[1:]
+    safe_div = np.where(prev_prices != 0, prev_prices, 1.0)
+    btc_returns[1:] = np.where(prev_prices != 0, (curr_prices - prev_prices) / safe_div, 0.0)
 
-        portfolio_value = cash + (btc * price)
-        ledger.append({
-            'Date': date,
-            'Price': price,
-            'MA7': ma7,
-            'MA30': ma30,
-            'Action': action,
-            'Cash': cash,
-            'BTC': btc,
-            'Portfolio Value': portfolio_value
-        })
+    strat_returns = btc_returns * prev_position
 
-    return pd.DataFrame(ledger)
+    portfolio_value = initial_cash * np.cumprod(1 + strat_returns)
+
+    # Zero out portfolio value if it goes negative due to weird floating point (not typical but safe)
+    portfolio_value = np.maximum(portfolio_value, 0.0)
+
+    safe_prices = np.where(prices != 0, prices, 1.0)
+    btc_held = np.where((position == 1) & (prices != 0), portfolio_value / safe_prices, 0.0)
+    cash_held = np.where(position == 0, portfolio_value, 0.0)
+
+    # We only record an action string if we actually exchanged value OR if we exchanged it previously and value was > 0
+    # Actually, in original logic:
+    # SELL: if btc > 0: cash = btc * price, action = SELL
+    # On day 2, price is 0. We bought BTC on day 1 (price 100, cash 10k, so 100 BTC).
+    # On day 2, we hold 100 BTC. btc > 0. So we sell it. cash becomes 0. action becomes SELL 100 BTC.
+    # We need to make sure we issue a SELL action even if the value drops to 0.
+    # So `is_sell` should not be restricted by `portfolio_value > 0`.
+
+    # Let's track `btc` and `cash` properly. The action should refer to the amount of BTC exchanged.
+    # On buy, we exchange cash -> BTC. The amount of BTC is `portfolio_value / price`. (If cash was > 0, which means portfolio_value > 0).
+    # On sell, we exchange BTC -> cash. The amount of BTC sold is the BTC we held yesterday.
+
+    prev_portfolio_value = np.roll(portfolio_value, 1)
+    prev_portfolio_value[0] = initial_cash
+
+    prev_prices_arr = np.roll(prices, 1)
+    prev_prices_arr[0] = 1.0
+    safe_prev_prices = np.where(prev_prices_arr != 0, prev_prices_arr, 1.0)
+
+    # The BTC we held yesterday is prev_portfolio_value / prev_prices_arr
+    prev_btc_held = np.where(prev_position == 1, prev_portfolio_value / safe_prev_prices, 0.0)
+
+    is_buy = (position == 1) & (prev_position == 0) & (portfolio_value > 0)
+    # We sell if we were holding BTC and now we are not. And we only sell if we actually held BTC.
+    is_sell = (position == 0) & (prev_position == 1) & (prev_btc_held > 0)
+
+    action = np.full(len(df), "HOLD", dtype=object)
+
+    buy_indices = np.where(is_buy)[0]
+    sell_indices = np.where(is_sell)[0]
+
+    for idx in buy_indices:
+        action[idx] = f"BUY {btc_held[idx]:.4f} BTC"
+
+    for idx in sell_indices:
+        action[idx] = f"SELL {prev_btc_held[idx]:.4f} BTC"
+
+    return pd.DataFrame({
+        'Date': dates,
+        'Price': prices,
+        'MA7': ma7,
+        'MA30': ma30,
+        'Action': action,
+        'Cash': cash_held,
+        'BTC': btc_held,
+        'Portfolio Value': portfolio_value
+    })
 
 if __name__ == "__main__":
     print("Simulating 60 days of Bitcoin prices...")
