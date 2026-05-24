@@ -16,6 +16,23 @@ def turn_context():
     context.send_activity = AsyncMock()
     return context
 
+def test_positive_vibes_bot_initialization(bot):
+    expected_messages = [
+        "You are doing great!",
+        "Keep up the good work!",
+        "Believe in yourself!",
+        "You are awesome!",
+        "Have a fantastic day!",
+        "Every day is a second chance.",
+        "Positivity always wins...",
+        "Sending positive vibes your way!",
+        "You got this!",
+        "Stay positive and happy!"
+    ]
+    assert hasattr(bot, "positive_messages")
+    assert isinstance(bot.positive_messages, list)
+    assert bot.positive_messages == expected_messages
+
 @pytest.mark.asyncio
 async def test_on_message_activity_empty_text(bot, turn_context):
     turn_context.activity.text = ""
