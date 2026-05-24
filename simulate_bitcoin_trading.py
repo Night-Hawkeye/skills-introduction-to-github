@@ -32,23 +32,29 @@ def run_trading_algorithm(df):
     cash = 10000.0  # Initial capital
     btc = 0.0
 
-    ledger = []
-
     # Use .values for performant loop over DataFrame
     dates = df['Date'].dt.strftime('%Y-%m-%d').values
     prices = df['Price'].values
     ma7s = df['MA7'].values
     ma30s = df['MA30'].values
 
-    for i in range(len(df)):
-        date = dates[i]
+    n = len(df)
+
+    # Pre-allocate output arrays
+    actions = np.full(n, "HOLD", dtype=object)
+    cashes = np.zeros(n)
+    btcs = np.zeros(n)
+    portfolios = np.zeros(n)
+
+    # Pre compute boolean mask to safely handle NaNs
+    valid = pd.notna(ma7s) & pd.notna(ma30s)
+
+    for i in range(n):
         price = prices[i]
         ma7 = ma7s[i]
         ma30 = ma30s[i]
 
-        action = "HOLD"
-
-        if i > 0 and not pd.isna(ma7) and not pd.isna(ma30) and not pd.isna(ma7s[i-1]) and not pd.isna(ma30s[i-1]):
+        if i > 0 and valid[i] and valid[i-1]:
             prev_ma7 = ma7s[i-1]
             prev_ma30 = ma30s[i-1]
 
@@ -57,28 +63,29 @@ def run_trading_algorithm(df):
                 if cash > 0:
                     btc = cash / price
                     cash = 0.0
-                    action = f"BUY {btc:.4f} BTC"
+                    actions[i] = f"BUY {btc:.4f} BTC"
 
             # Death Cross: MA7 crosses below MA30 -> SELL
             elif prev_ma7 >= prev_ma30 and ma7 < ma30:
                 if btc > 0:
                     cash = btc * price
-                    action = f"SELL {btc:.4f} BTC"
+                    actions[i] = f"SELL {btc:.4f} BTC"
                     btc = 0.0
 
-        portfolio_value = cash + (btc * price)
-        ledger.append({
-            'Date': date,
-            'Price': price,
-            'MA7': ma7,
-            'MA30': ma30,
-            'Action': action,
-            'Cash': cash,
-            'BTC': btc,
-            'Portfolio Value': portfolio_value
-        })
+        cashes[i] = cash
+        btcs[i] = btc
+        portfolios[i] = cash + (btc * price)
 
-    return pd.DataFrame(ledger)
+    return pd.DataFrame({
+        'Date': dates,
+        'Price': prices,
+        'MA7': ma7s,
+        'MA30': ma30s,
+        'Action': actions,
+        'Cash': cashes,
+        'BTC': btcs,
+        'Portfolio Value': portfolios
+    })
 
 if __name__ == "__main__":
     print("Simulating 60 days of Bitcoin prices...")
