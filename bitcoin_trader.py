@@ -32,6 +32,10 @@ def run_trading_algorithm(df):
 
     ledger = []
 
+    n = len(df)
+    if n == 0:
+        return pd.DataFrame(columns=['Date', 'Price', 'MA7', 'MA30', 'Action', 'Cash', 'BTC', 'Portfolio Value'])
+
     dates = df['Date'].dt.strftime('%Y-%m-%d').values
     prices = df['Price'].values
     ma7s = df['MA7'].values
@@ -40,45 +44,66 @@ def run_trading_algorithm(df):
     # Pre compute boolean mask to safely handle NaNs
     valid = pd.notna(ma7s) & pd.notna(ma30s)
 
-    for i in range(len(df)):
-        date = dates[i]
-        price = prices[i]
-        ma7 = ma7s[i]
-        ma30 = ma30s[i]
+    prev_ma7 = np.roll(ma7s, 1)
+    prev_ma30 = np.roll(ma30s, 1)
+    prev_ma7[0] = ma7s[0]
+    prev_ma30[0] = ma30s[0]
+    prev_valid = np.roll(valid, 1)
+    prev_valid[0] = False
 
-        action = "HOLD"
+    # Vectorized signals
+    with np.errstate(invalid='ignore'):
+        buy_signals = valid & prev_valid & (prev_ma7 <= prev_ma30) & (ma7s > ma30s)
+        sell_signals = valid & prev_valid & (prev_ma7 >= prev_ma30) & (ma7s < ma30s)
 
-        if i > 0 and valid[i] and valid[i-1]:
-            prev_ma7 = ma7s[i-1]
-            prev_ma30 = ma30s[i-1]
+    signal_indices = np.where(buy_signals | sell_signals)[0]
 
-            # Golden Cross: MA7 crosses above MA30 -> BUY
-            if prev_ma7 <= prev_ma30 and ma7 > ma30:
-                if cash > 0:
-                    btc = cash / price
-                    cash = 0.0
-                    action = f"BUY {btc:.4f} BTC"
+    # Initialize states
+    cash_arr = np.zeros(n)
+    btc_arr = np.zeros(n)
+    action_arr = np.full(n, "HOLD", dtype=object)
 
-            # Death Cross: MA7 crosses below MA30 -> SELL
-            elif prev_ma7 >= prev_ma30 and ma7 < ma30:
-                if btc > 0:
-                    cash = btc * price
-                    action = f"SELL {btc:.4f} BTC"
-                    btc = 0.0
+    current_cash = cash
+    current_btc = btc
 
-        portfolio_value = cash + (btc * price)
-        ledger.append({
-            'Date': date,
-            'Price': price,
-            'MA7': ma7,
-            'MA30': ma30,
-            'Action': action,
-            'Cash': cash,
-            'BTC': btc,
-            'Portfolio Value': portfolio_value
-        })
+    last_idx = 0
+    for idx in signal_indices:
+        # Fill intermediate non-signal states
+        cash_arr[last_idx:idx] = current_cash
+        btc_arr[last_idx:idx] = current_btc
 
-    return pd.DataFrame(ledger)
+        price = prices[idx]
+        if buy_signals[idx]:
+            if current_cash > 0:
+                current_btc = current_cash / price
+                current_cash = 0.0
+                action_arr[idx] = f"BUY {current_btc:.4f} BTC"
+        elif sell_signals[idx]:
+            if current_btc > 0:
+                current_cash = current_btc * price
+                action_arr[idx] = f"SELL {current_btc:.4f} BTC"
+                current_btc = 0.0
+
+        cash_arr[idx] = current_cash
+        btc_arr[idx] = current_btc
+        last_idx = idx + 1
+
+    # Fill remaining
+    cash_arr[last_idx:] = current_cash
+    btc_arr[last_idx:] = current_btc
+
+    portfolio_value = cash_arr + (btc_arr * prices)
+
+    return pd.DataFrame({
+        'Date': dates,
+        'Price': prices,
+        'MA7': ma7s,
+        'MA30': ma30s,
+        'Action': action_arr,
+        'Cash': cash_arr,
+        'BTC': btc_arr,
+        'Portfolio Value': portfolio_value
+    })
 
 if __name__ == "__main__":
     print("Simulating 60 days of Bitcoin prices...")
