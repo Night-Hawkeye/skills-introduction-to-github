@@ -50,9 +50,7 @@ BOT = PositiveVibesBot()
 
 # Listen for incoming requests on /api/messages
 async def messages(req: Request) -> Response:
-    if "application/json" in req.headers.get("Content-Type", ""):
-        body = await req.json()
-    else:
+    if "application/json" not in req.headers.get("Content-Type", ""):
         return Response(status=HTTPStatus.UNSUPPORTED_MEDIA_TYPE)
 
     # Process route
