@@ -12,7 +12,7 @@ class TestConfig(unittest.TestCase):
             importlib.reload(config)
             self.assertEqual(config.DefaultConfig.PORT, 3978)
             self.assertEqual(config.DefaultConfig.APP_ID, "")
-            self.assertEqual(config.DefaultConfig.APP_PASSWORD, "")
+            self.assertIsNone(config.DefaultConfig.APP_PASSWORD)
             self.assertEqual(config.DefaultConfig.APP_TYPE, "MultiTenant")
             self.assertEqual(config.DefaultConfig.APP_TENANTID, "")
 
