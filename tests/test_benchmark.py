@@ -70,3 +70,10 @@ def test_original_vs_optimized():
     opt_res = optimized(days=10, initial_price=50000.0, volatility=0.04, drift=0.001, seed=test_seed)
 
     assert np.allclose(orig_res, opt_res)
+
+def test_edge_cases():
+    """Test that days <= 0 returns an empty list for both implementations."""
+    assert original(days=0) == []
+    assert optimized(days=0) == []
+    assert original(days=-1) == []
+    assert optimized(days=-1) == []
