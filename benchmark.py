@@ -3,6 +3,8 @@ import timeit
 import numpy as np
 
 def original(days=10000, initial_price=50000.0, volatility=0.04, drift=0.001, seed=None):
+    if days <= 0:
+        return []
     if seed is None:
         seed = secrets.randbits(128)
     rng = np.random.default_rng(seed)
@@ -14,6 +16,8 @@ def original(days=10000, initial_price=50000.0, volatility=0.04, drift=0.001, se
     return prices
 
 def optimized(days=10000, initial_price=50000.0, volatility=0.04, drift=0.001, seed=None):
+    if days <= 0:
+        return []
     if seed is None:
         seed = secrets.randbits(128)
     rng = np.random.default_rng(seed)
