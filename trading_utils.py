@@ -24,15 +24,7 @@ def calculate_moving_averages(df):
     df['MA30'] = df['Price'].rolling(window=30).mean()
     return df
 
-def run_trading_algorithm(df):
-    """Implement Golden Cross trading algorithm."""
-    initial_cash = 10000.0
-
-    dates = df['Date'].dt.strftime('%Y-%m-%d').values
-    prices = df['Price'].values
-    ma7 = df['MA7'].values
-    ma30 = df['MA30'].values
-
+def _generate_signals(ma7, ma30, index):
     valid = pd.notna(ma7) & pd.notna(ma30)
 
     prev_ma7 = np.roll(ma7, 1)
@@ -43,15 +35,16 @@ def run_trading_algorithm(df):
     buy_signal = (prev_ma7 <= prev_ma30) & (ma7 > ma30) & valid & prev_valid
     sell_signal = (prev_ma7 >= prev_ma30) & (ma7 < ma30) & valid & prev_valid
 
-    signals = pd.Series(np.nan, index=df.index)
+    signals = pd.Series(np.nan, index=index)
     signals.loc[buy_signal] = 1
     signals.loc[sell_signal] = 0
-    position = signals.ffill().fillna(0).values
+    return signals.ffill().fillna(0).values
 
+def _calculate_portfolio(prices, position, initial_cash):
     prev_position = np.roll(position, 1)
     prev_position[0] = 0
 
-    btc_returns = np.zeros(len(df))
+    btc_returns = np.zeros(len(prices))
     prev_prices = prices[:-1]
     curr_prices = prices[1:]
     safe_div = np.where(prev_prices != 0, prev_prices, 1.0)
@@ -68,17 +61,11 @@ def run_trading_algorithm(df):
     btc_held = np.where((position == 1) & (prices != 0), portfolio_value / safe_prices, 0.0)
     cash_held = np.where(position == 0, portfolio_value, 0.0)
 
-    # We only record an action string if we actually exchanged value OR if we exchanged it previously and value was > 0
-    # Actually, in original logic:
-    # SELL: if btc > 0: cash = btc * price, action = SELL
-    # On day 2, price is 0. We bought BTC on day 1 (price 100, cash 10k, so 100 BTC).
-    # On day 2, we hold 100 BTC. btc > 0. So we sell it. cash becomes 0. action becomes SELL 100 BTC.
-    # We need to make sure we issue a SELL action even if the value drops to 0.
-    # So `is_sell` should not be restricted by `portfolio_value > 0`.
+    return portfolio_value, cash_held, btc_held
 
-    # Let's track `btc` and `cash` properly. The action should refer to the amount of BTC exchanged.
-    # On buy, we exchange cash -> BTC. The amount of BTC is `portfolio_value / price`. (If cash was > 0, which means portfolio_value > 0).
-    # On sell, we exchange BTC -> cash. The amount of BTC sold is the BTC we held yesterday.
+def _generate_actions(prices, position, portfolio_value, btc_held, initial_cash):
+    prev_position = np.roll(position, 1)
+    prev_position[0] = 0
 
     prev_portfolio_value = np.roll(portfolio_value, 1)
     prev_portfolio_value[0] = initial_cash
@@ -94,7 +81,7 @@ def run_trading_algorithm(df):
     # We sell if we were holding BTC and now we are not. And we only sell if we actually held BTC.
     is_sell = (position == 0) & (prev_position == 1) & (prev_btc_held > 0)
 
-    action = np.full(len(df), "HOLD", dtype=object)
+    action = np.full(len(prices), "HOLD", dtype=object)
 
     buy_indices = np.where(is_buy)[0]
     sell_indices = np.where(is_sell)[0]
@@ -104,6 +91,24 @@ def run_trading_algorithm(df):
 
     for idx in sell_indices:
         action[idx] = f"SELL {prev_btc_held[idx]:.4f} BTC"
+
+    return action
+
+def run_trading_algorithm(df):
+    """Implement Golden Cross trading algorithm."""
+    if len(df) == 0:
+        return pd.DataFrame()
+
+    initial_cash = 10000.0
+
+    dates = df['Date'].dt.strftime('%Y-%m-%d').values
+    prices = df['Price'].values
+    ma7 = df['MA7'].values
+    ma30 = df['MA30'].values
+
+    position = _generate_signals(ma7, ma30, df.index)
+    portfolio_value, cash_held, btc_held = _calculate_portfolio(prices, position, initial_cash)
+    action = _generate_actions(prices, position, portfolio_value, btc_held, initial_cash)
 
     return pd.DataFrame({
         'Date': dates,
