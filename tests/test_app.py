@@ -91,3 +91,12 @@ async def test_on_error_emulator_channel():
     assert trace_activity.type == ActivityTypes.trace
     assert trace_activity.label == "TurnError"
     assert trace_activity.value == "An unhandled error occurred."
+
+
+def test_run_app_exception(mocker):
+    """Test that an exception during web.run_app is raised."""
+    import runpy
+    mocker.patch("app.web.run_app", side_effect=Exception("Test Exception"))
+    import pytest
+    with pytest.raises(Exception, match="Test Exception"):
+        runpy.run_module("app", run_name="__main__")
