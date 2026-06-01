@@ -1,4 +1,3 @@
-import pandas as pd
 from btc_trader_script import simulate_bitcoin_prices
 
 def test_predictability():
