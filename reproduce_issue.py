@@ -1,4 +1,4 @@
-from btc_trader_script import simulate_bitcoin_prices
+from bitcoin import simulate_bitcoin_prices
 
 def test_predictability():
     df1 = simulate_bitcoin_prices(days=10)
