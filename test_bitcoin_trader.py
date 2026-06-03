@@ -1,5 +1,5 @@
 import pandas as pd
-from bitcoin_trader import simulate_bitcoin_prices, calculate_moving_averages
+from bitcoin import simulate_bitcoin_prices, calculate_moving_averages
 
 def test_simulate_bitcoin_prices():
     df = simulate_bitcoin_prices(days=10)
