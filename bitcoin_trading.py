@@ -83,14 +83,11 @@ def _generate_actions(prices, position, portfolio_value, btc_held, initial_cash)
 
     action = np.full(len(prices), "HOLD", dtype=object)
 
-    buy_indices = np.where(is_buy)[0]
-    sell_indices = np.where(is_sell)[0]
+    if is_buy.any():
+        action[is_buy] = [f"BUY {x:.4f} BTC" for x in btc_held[is_buy]]
 
-    for idx in buy_indices:
-        action[idx] = f"BUY {btc_held[idx]:.4f} BTC"
-
-    for idx in sell_indices:
-        action[idx] = f"SELL {prev_btc_held[idx]:.4f} BTC"
+    if is_sell.any():
+        action[is_sell] = [f"SELL {x:.4f} BTC" for x in prev_btc_held[is_sell]]
 
     return action
 
