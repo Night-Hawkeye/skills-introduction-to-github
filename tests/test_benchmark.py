@@ -14,7 +14,7 @@ def test_original_math(mocker):
 
     # Create a mock RNG that returns a mock normal distribution
     mock_rng = MagicMock()
-    mock_rng.normal.return_value = 0.5
+    mock_rng.normal.return_value = np.array([0.5, 0.5, 0.5])
 
     # Patch default_rng to return our mock
     mocker.patch('numpy.random.default_rng', return_value=mock_rng)
