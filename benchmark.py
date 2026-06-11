@@ -8,12 +8,10 @@ def original(days=10000, initial_price=50000.0, volatility=0.04, drift=0.001, se
     if seed is None:
         seed = secrets.randbits(128)
     rng = np.random.default_rng(seed)
-    prices = [initial_price]
-    for _ in range(1, days):
-        shock = rng.normal(0, 1)
-        price_change = np.exp((drift - 0.5 * volatility**2) + volatility * shock)
-        prices.append(prices[-1] * price_change)
-    return prices
+    shocks = rng.normal(0, 1, days - 1)
+    price_changes = np.exp((drift - 0.5 * volatility**2) + volatility * shocks)
+    prices = np.concatenate(([initial_price], initial_price * np.cumprod(price_changes)))
+    return prices.tolist()
 
 def optimized(days=10000, initial_price=50000.0, volatility=0.04, drift=0.001, seed=None):
     if days <= 0:
