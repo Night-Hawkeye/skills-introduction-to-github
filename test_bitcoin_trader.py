@@ -50,3 +50,10 @@ def test_calculate_moving_averages_edge_cases():
     df_short = calculate_moving_averages(df_short)
     assert pd.isna(df_short['MA7']).all()
     assert pd.isna(df_short['MA30']).all()
+
+def test_run_trading_algorithm_empty_df():
+    from trading_utils import run_trading_algorithm
+    df_empty = pd.DataFrame({'Date': pd.Series([], dtype='datetime64[ns]'), 'Price': pd.Series([], dtype=float), 'MA7': pd.Series([], dtype=float), 'MA30': pd.Series([], dtype=float)})
+    result = run_trading_algorithm(df_empty)
+    assert isinstance(result, pd.DataFrame)
+    assert len(result) == 0
