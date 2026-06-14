@@ -2,9 +2,9 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta, timezone
 
-def simulate_bitcoin_prices(days=60, initial_price=50000, volatility=0.04, drift=0.001):
+def simulate_bitcoin_prices(days=60, initial_price=50000.0, volatility=0.04, drift=0.001):
     """Simulate Bitcoin prices using Geometric Brownian Motion."""
-    # Use default_rng() without arguments for secure random generation from the OS entropy pool
+    # Use default_rng without arguments for secure randomness from the OS
     rng = np.random.default_rng()
 
     shocks = rng.normal(0, 1, days - 1)
@@ -12,7 +12,7 @@ def simulate_bitcoin_prices(days=60, initial_price=50000, volatility=0.04, drift
     prices = initial_price * np.cumprod(np.insert(price_changes, 0, 1.0))
 
     # Fast datetime generation
-    start_date = datetime.now(timezone.utc) - timedelta(days=days-1)
+    start_date = datetime.now(timezone.utc) - timedelta(days=days - 1)
     dates = pd.date_range(start=start_date, periods=days)
 
     df = pd.DataFrame({'Date': dates, 'Price': prices})
