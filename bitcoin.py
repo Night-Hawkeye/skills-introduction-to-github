@@ -1,18 +1,17 @@
 import pandas as pd
 import numpy as np
+import secrets
 from datetime import datetime, timedelta, timezone
 
-def simulate_bitcoin_prices(days=60, initial_price=50000, volatility=0.04, drift=0.001):
+def simulate_bitcoin_prices(days=60, initial_price=50000.0, volatility=0.04, drift=0.001):
     """Simulate Bitcoin prices using Geometric Brownian Motion."""
-    # Use default_rng() without arguments for secure random generation from the OS entropy pool
-    rng = np.random.default_rng()
-
-    shocks = rng.normal(0, 1, days - 1)
+    # Use secrets for true cryptographic security
+    shocks = np.array([secrets.SystemRandom().gauss(0, 1) for _ in range(days - 1)])
     price_changes = np.exp((drift - 0.5 * volatility**2) + volatility * shocks)
     prices = initial_price * np.cumprod(np.insert(price_changes, 0, 1.0))
 
     # Fast datetime generation
-    start_date = datetime.now(timezone.utc) - timedelta(days=days-1)
+    start_date = datetime.now(timezone.utc) - timedelta(days=days - 1)
     dates = pd.date_range(start=start_date, periods=days)
 
     df = pd.DataFrame({'Date': dates, 'Price': prices})
@@ -20,11 +19,18 @@ def simulate_bitcoin_prices(days=60, initial_price=50000, volatility=0.04, drift
 
 def calculate_moving_averages(df):
     """Calculate 7-day and 30-day Moving Averages."""
+    if len(df) == 0:
+        df['MA7'] = pd.Series([], dtype=float)
+        df['MA30'] = pd.Series([], dtype=float)
+        return df
+
     df['MA7'] = df['Price'].rolling(window=7).mean()
     df['MA30'] = df['Price'].rolling(window=30).mean()
     return df
 
 def _generate_signals(ma7, ma30, index):
+    if len(ma7) == 0:
+        return np.array([])
     valid = pd.notna(ma7) & pd.notna(ma30)
 
     prev_ma7 = np.roll(ma7, 1)
@@ -32,8 +38,9 @@ def _generate_signals(ma7, ma30, index):
     prev_valid = np.roll(valid, 1)
     prev_valid[0] = False
 
-    buy_signal = (prev_ma7 <= prev_ma30) & (ma7 > ma30) & valid & prev_valid
-    sell_signal = (prev_ma7 >= prev_ma30) & (ma7 < ma30) & valid & prev_valid
+    with np.errstate(invalid='ignore'):
+        buy_signal = (prev_ma7 <= prev_ma30) & (ma7 > ma30) & valid & prev_valid
+        sell_signal = (prev_ma7 >= prev_ma30) & (ma7 < ma30) & valid & prev_valid
 
     signals = pd.Series(np.nan, index=index)
     signals.loc[buy_signal] = 1
@@ -41,6 +48,8 @@ def _generate_signals(ma7, ma30, index):
     return signals.ffill().fillna(0).values
 
 def _calculate_portfolio(prices, position, initial_cash):
+    if len(prices) == 0:
+        return np.array([]), np.array([]), np.array([])
     prev_position = np.roll(position, 1)
     prev_position[0] = 0
 
@@ -64,6 +73,8 @@ def _calculate_portfolio(prices, position, initial_cash):
     return portfolio_value, cash_held, btc_held
 
 def _generate_actions(prices, position, portfolio_value, btc_held, initial_cash):
+    if len(prices) == 0:
+        return np.array([])
     prev_position = np.roll(position, 1)
     prev_position[0] = 0
 
@@ -86,11 +97,11 @@ def _generate_actions(prices, position, portfolio_value, btc_held, initial_cash)
     buy_indices = np.where(is_buy)[0]
     sell_indices = np.where(is_sell)[0]
 
-    for idx in buy_indices:
-        action[idx] = f"BUY {btc_held[idx]:.4f} BTC"
+    if len(buy_indices) > 0:
+        action[buy_indices] = [f"BUY {val:.4f} BTC" for val in btc_held[buy_indices].tolist()]
 
-    for idx in sell_indices:
-        action[idx] = f"SELL {prev_btc_held[idx]:.4f} BTC"
+    if len(sell_indices) > 0:
+        action[sell_indices] = [f"SELL {val:.4f} BTC" for val in prev_btc_held[sell_indices].tolist()]
 
     return action
 
