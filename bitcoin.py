@@ -47,28 +47,38 @@ def _generate_signals(ma7, ma30, index):
     signals.loc[sell_signal] = 0
     return signals.ffill().fillna(0).values
 
-def _calculate_portfolio(prices, position, initial_cash):
-    if len(prices) == 0:
-        return np.array([]), np.array([]), np.array([])
-    prev_position = np.roll(position, 1)
-    prev_position[0] = 0
-
+def _calculate_btc_returns(prices):
     btc_returns = np.zeros(len(prices))
     prev_prices = prices[:-1]
     curr_prices = prices[1:]
     safe_div = np.where(prev_prices != 0, prev_prices, 1.0)
     btc_returns[1:] = np.where(prev_prices != 0, (curr_prices - prev_prices) / safe_div, 0.0)
+    return btc_returns
 
-    strat_returns = btc_returns * prev_position
+def _calculate_strategy_returns(btc_returns, position):
+    prev_position = np.roll(position, 1)
+    prev_position[0] = 0
+    return btc_returns * prev_position
+
+def _calculate_asset_holdings(portfolio_value, prices, position):
+    safe_prices = np.where(prices != 0, prices, 1.0)
+    btc_held = np.where((position == 1) & (prices != 0), portfolio_value / safe_prices, 0.0)
+    cash_held = np.where(position == 0, portfolio_value, 0.0)
+    return btc_held, cash_held
+
+def _calculate_portfolio(prices, position, initial_cash):
+    if len(prices) == 0:
+        return np.array([]), np.array([]), np.array([])
+
+    btc_returns = _calculate_btc_returns(prices)
+    strat_returns = _calculate_strategy_returns(btc_returns, position)
 
     portfolio_value = initial_cash * np.cumprod(1 + strat_returns)
 
     # Zero out portfolio value if it goes negative due to weird floating point (not typical but safe)
     portfolio_value = np.maximum(portfolio_value, 0.0)
 
-    safe_prices = np.where(prices != 0, prices, 1.0)
-    btc_held = np.where((position == 1) & (prices != 0), portfolio_value / safe_prices, 0.0)
-    cash_held = np.where(position == 0, portfolio_value, 0.0)
+    btc_held, cash_held = _calculate_asset_holdings(portfolio_value, prices, position)
 
     return portfolio_value, cash_held, btc_held
 
