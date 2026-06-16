@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import pytest
-from bitcoin import simulate_bitcoin_prices, calculate_moving_averages, run_trading_algorithm
+from bitcoin_trading import simulate_bitcoin_prices, calculate_moving_averages, run_trading_algorithm
 
 def create_mock_df(prices, ma7s, ma30s):
     dates = pd.date_range(start='2023-01-01', periods=len(prices))
