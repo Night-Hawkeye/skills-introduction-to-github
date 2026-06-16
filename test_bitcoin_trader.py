@@ -57,3 +57,32 @@ def test_run_trading_algorithm_empty_df():
     result = run_trading_algorithm(df_empty)
     assert isinstance(result, pd.DataFrame)
     assert len(result) == 0
+
+import numpy as np
+from bitcoin import _generate_actions
+
+def test_generate_actions():
+    prices = np.array([100.0, 110.0, 120.0, 130.0, 140.0])
+    position = np.array([0, 1, 1, 0, 0])
+    portfolio_value = np.array([1000.0, 1000.0, 1090.909090909091, 1090.909090909091, 1090.909090909091])
+    btc_held = np.array([0.0, 9.090909090909092, 9.090909090909092, 0.0, 0.0])
+    initial_cash = 1000.0
+
+    actions = _generate_actions(prices, position, portfolio_value, btc_held, initial_cash)
+
+    assert len(actions) == len(prices)
+    assert "BUY 9.0909 BTC" in actions[1]
+    assert "SELL 9.0909 BTC" in actions[3]
+    assert actions[0] == "HOLD"
+    assert actions[2] == "HOLD"
+    assert actions[4] == "HOLD"
+
+def test_generate_actions_empty():
+    prices = np.array([])
+    position = np.array([])
+    portfolio_value = np.array([])
+    btc_held = np.array([])
+    initial_cash = 1000.0
+
+    actions = _generate_actions(prices, position, portfolio_value, btc_held, initial_cash)
+    assert len(actions) == 0
