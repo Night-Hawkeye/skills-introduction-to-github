@@ -57,3 +57,40 @@ def test_run_trading_algorithm_empty_df():
     result = run_trading_algorithm(df_empty)
     assert isinstance(result, pd.DataFrame)
     assert len(result) == 0
+
+
+def test_generate_signals():
+    import numpy as np
+    import pandas as pd
+    from bitcoin import _generate_signals
+
+    # Test empty arrays
+    empty_result = _generate_signals(np.array([]), np.array([]), pd.Index([]))
+    assert len(empty_result) == 0
+
+    # Test golden cross (MA7 crosses above MA30)
+    # Day 0: MA7 < MA30 (Valid: True)
+    # Day 1: MA7 > MA30 (Valid: True) -> Buy signal
+    # Day 2: MA7 > MA30 (Valid: True) -> Hold
+    ma7 = np.array([10.0, 35.0, 40.0])
+    ma30 = np.array([20.0, 30.0, 30.0])
+    index = pd.Index([0, 1, 2])
+    signals = _generate_signals(ma7, ma30, index)
+
+    assert len(signals) == 3
+    assert signals[0] == 0.0 # Initial state
+    assert signals[1] == 1.0 # Buy signal
+    assert signals[2] == 1.0 # Holding
+
+    # Test death cross (MA7 crosses below MA30)
+    # Day 0: MA7 < MA30 (Valid: True)
+    # Day 1: MA7 > MA30 (Valid: True) -> Buy
+    # Day 2: MA7 < MA30 (Valid: True) -> Sell
+    ma7 = np.array([10.0, 40.0, 20.0])
+    ma30 = np.array([20.0, 30.0, 30.0])
+    signals2 = _generate_signals(ma7, ma30, index)
+
+    assert len(signals2) == 3
+    assert signals2[0] == 0.0 # Initial
+    assert signals2[1] == 1.0 # Buy
+    assert signals2[2] == 0.0 # Sell signal
