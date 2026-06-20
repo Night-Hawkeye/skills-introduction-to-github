@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import unittest.mock
 
 # Import functions from the target script
-from bitcoin_trading import simulate_bitcoin_prices, calculate_moving_averages, run_trading_algorithm
+from new_bitcoin_trading import simulate_bitcoin_prices, calculate_moving_averages, run_trading_algorithm
 
 def test_simulate_bitcoin_prices():
     """Test that simulate_bitcoin_prices returns a DataFrame with expected shape and columns."""
