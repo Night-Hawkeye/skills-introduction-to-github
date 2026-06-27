@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 import pytest
-from new_bitcoin_trading import run_trading_algorithm
+from bitcoin_script import run_trading_algorithm
 
 def test_run_trading_algorithm_golden_cross():
     """Test that the algorithm buys on a Golden Cross."""

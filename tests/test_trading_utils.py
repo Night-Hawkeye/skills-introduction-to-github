@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import pytest
 from datetime import datetime, timedelta
-from new_bitcoin_trading import run_trading_algorithm, simulate_bitcoin_prices, calculate_moving_averages
+from bitcoin_script import run_trading_algorithm, simulate_bitcoin_prices, calculate_moving_averages
 
 def create_mock_df(prices, ma7s, ma30s):
     dates = [pd.Timestamp(2023, 1, 1) + pd.Timedelta(days=i) for i in range(len(prices))]
