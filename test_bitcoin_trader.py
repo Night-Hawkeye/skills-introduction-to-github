@@ -62,7 +62,7 @@ def test_run_trading_algorithm_empty_df():
 def test_generate_signals():
     import numpy as np
     import pandas as pd
-    from bitcoin import _generate_signals
+    from bitcoin_trading import _generate_signals
 
     # Test empty arrays
     empty_result = _generate_signals(np.array([]), np.array([]), pd.Index([]))
