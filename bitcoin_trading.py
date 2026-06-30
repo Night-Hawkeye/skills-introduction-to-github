@@ -5,11 +5,15 @@ from datetime import datetime, timedelta, timezone
 
 def simulate_bitcoin_prices(days=60, initial_price=50000.0, volatility=0.04, drift=0.001):
     """Simulate Bitcoin prices using Geometric Brownian Motion."""
-    # Use secrets for true cryptographic security
-    rng = secrets.SystemRandom()
-    shocks = np.array([rng.gauss(0, 1) for _ in range(days - 1)])
-    price_changes = np.exp((drift - 0.5 * volatility**2) + volatility * shocks)
-    prices = initial_price * np.cumprod(np.insert(price_changes, 0, 1.0))
+    rng = np.random.default_rng()
+    if days > 1:
+        shocks = rng.normal(0, 1, days - 1)
+        log_returns = (drift - 0.5 * volatility**2) + volatility * shocks
+        prices = np.empty(days)
+        prices[0] = initial_price
+        prices[1:] = initial_price * np.exp(np.cumsum(log_returns))
+    else:
+        prices = np.array([initial_price])
 
     # Fast datetime generation
     start_date = datetime.now(timezone.utc) - timedelta(days=days - 1)
