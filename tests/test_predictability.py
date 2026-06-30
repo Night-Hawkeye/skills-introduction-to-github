@@ -1,5 +1,5 @@
 import pytest
-from new_bitcoin_trading import simulate_bitcoin_prices
+from bitcoin_trading import simulate_bitcoin_prices
 
 def test_predictability():
     """Test that simulate_bitcoin_prices produces different output on consecutive runs."""

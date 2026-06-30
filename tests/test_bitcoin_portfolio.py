@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from bitcoin import _calculate_portfolio
+from bitcoin_trading import _calculate_portfolio
 
 def test_calculate_portfolio_empty():
     prices = np.array([])
