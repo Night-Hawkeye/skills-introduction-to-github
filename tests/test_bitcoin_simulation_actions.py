@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from bitcoin_trading import _generate_actions
+from bitcoin import _generate_actions
 
 def test_generate_actions_empty():
     prices = np.array([])

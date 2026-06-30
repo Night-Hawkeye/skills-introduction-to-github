@@ -1,5 +1,5 @@
 import numpy as np
-from bitcoin_trading import _generate_actions
+from bitcoin import _generate_actions
 
 def test_generate_actions_empty():
     actions = _generate_actions(np.array([]), np.array([]), np.array([]), np.array([]), 10000.0)

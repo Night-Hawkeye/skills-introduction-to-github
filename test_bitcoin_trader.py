@@ -1,5 +1,5 @@
 import pandas as pd
-from bitcoin_trading import simulate_bitcoin_prices, calculate_moving_averages
+from bitcoin import simulate_bitcoin_prices, calculate_moving_averages
 
 def test_simulate_bitcoin_prices():
     df = simulate_bitcoin_prices(days=10)
@@ -52,7 +52,7 @@ def test_calculate_moving_averages_edge_cases():
     assert pd.isna(df_short['MA30']).all()
 
 def test_run_trading_algorithm_empty_df():
-    from bitcoin_trading import run_trading_algorithm
+    from bitcoin import run_trading_algorithm
     df_empty = pd.DataFrame({'Date': pd.Series([], dtype='datetime64[ns]'), 'Price': pd.Series([], dtype=float), 'MA7': pd.Series([], dtype=float), 'MA30': pd.Series([], dtype=float)})
     result = run_trading_algorithm(df_empty)
     assert isinstance(result, pd.DataFrame)
@@ -62,7 +62,7 @@ def test_run_trading_algorithm_empty_df():
 def test_generate_signals():
     import numpy as np
     import pandas as pd
-    from bitcoin_trading import _generate_signals
+    from bitcoin import _generate_signals
 
     # Test empty arrays
     empty_result = _generate_signals(np.array([]), np.array([]), pd.Index([]))
