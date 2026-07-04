@@ -3,10 +3,13 @@ import numpy as np
 import secrets
 from datetime import datetime, timedelta, timezone
 
-def simulate_bitcoin_prices(days=60, initial_price=50000.0, volatility=0.04, drift=0.001):
+def simulate_bitcoin_prices(days=60, initial_price=50000.0, volatility=0.04, drift=0.001, seed=None):
     """Simulate Bitcoin prices using Geometric Brownian Motion."""
     # Vectorized random number generation for performance
-    shocks = np.random.normal(0, 1, days - 1)
+    if seed is None:
+        seed = secrets.randbits(128)
+    rng = np.random.default_rng(seed)
+    shocks = rng.normal(0, 1, days - 1)
     log_returns = (drift - 0.5 * volatility**2) + volatility * shocks
     prices = np.empty(days)
     prices[0] = initial_price
