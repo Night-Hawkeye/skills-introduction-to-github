@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import pytest
-from bitcoin_trading import simulate_bitcoin_prices, calculate_moving_averages, run_trading_algorithm
+from bitcoin_trading import simulate_bitcoin_prices, calculate_moving_averages, run_trading_algorithm, SimulationConfig
 
 def create_mock_df(prices, ma7s, ma30s):
     dates = pd.date_range(start='2023-01-01', periods=len(prices))
@@ -16,7 +16,7 @@ def test_simulate_bitcoin_prices():
     """Test simulate_bitcoin_prices for valid output dimensions and columns."""
     days = 10
     initial_price = 45000.0
-    df = simulate_bitcoin_prices(days=days, initial_price=initial_price)
+    df = simulate_bitcoin_prices(SimulationConfig(days=days, initial_price=initial_price))
 
     assert isinstance(df, pd.DataFrame)
     assert df.shape == (days, 2)

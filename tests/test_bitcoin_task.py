@@ -5,12 +5,12 @@ from datetime import datetime, timedelta
 import unittest.mock
 
 # Import functions from the target script
-from bitcoin_trading import simulate_bitcoin_prices, calculate_moving_averages, run_trading_algorithm
+from bitcoin_trading import simulate_bitcoin_prices, calculate_moving_averages, run_trading_algorithm, SimulationConfig
 
 def test_simulate_bitcoin_prices():
     """Test that simulate_bitcoin_prices returns a DataFrame with expected shape and columns."""
     days = 60
-    df = simulate_bitcoin_prices(days=days)
+    df = simulate_bitcoin_prices(SimulationConfig(days=days))
     assert isinstance(df, pd.DataFrame)
     assert 'Date' in df.columns
     assert 'Price' in df.columns
