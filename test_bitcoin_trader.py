@@ -94,3 +94,37 @@ def test_generate_signals():
     assert signals2[0] == 0.0 # Initial
     assert signals2[1] == 1.0 # Buy
     assert signals2[2] == 0.0 # Sell signal
+
+def test_calculate_asset_holdings():
+    import numpy as np
+    from bitcoin_trading import _calculate_asset_holdings
+
+    # Test scenario 1: Normal values
+    portfolio_value = np.array([1000.0, 2000.0, 3000.0])
+    prices = np.array([10.0, 20.0, 30.0])
+    position = np.array([1, 0, 1])
+
+    btc_held, cash_held = _calculate_asset_holdings(portfolio_value, prices, position)
+
+    assert np.allclose(btc_held, [100.0, 0.0, 100.0])
+    assert np.allclose(cash_held, [0.0, 2000.0, 0.0])
+
+    # Test scenario 2: 0 prices
+    portfolio_value_zero = np.array([1000.0, 1000.0])
+    prices_zero = np.array([0.0, 0.0])
+    position_zero = np.array([1, 0])
+
+    btc_held_zero, cash_held_zero = _calculate_asset_holdings(portfolio_value_zero, prices_zero, position_zero)
+
+    assert np.allclose(btc_held_zero, [0.0, 0.0])
+    assert np.allclose(cash_held_zero, [0.0, 1000.0])
+
+    # Test scenario 3: 0 portfolio value
+    portfolio_value_empty = np.array([0.0, 0.0])
+    prices_empty = np.array([10.0, 20.0])
+    position_empty = np.array([1, 0])
+
+    btc_held_empty, cash_held_empty = _calculate_asset_holdings(portfolio_value_empty, prices_empty, position_empty)
+
+    assert np.allclose(btc_held_empty, [0.0, 0.0])
+    assert np.allclose(cash_held_empty, [0.0, 0.0])
