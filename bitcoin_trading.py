@@ -62,6 +62,8 @@ def _calculate_btc_returns(prices):
     return btc_returns
 
 def _calculate_strategy_returns(btc_returns, position):
+    if len(position) == 0:
+        return np.array([])
     prev_position = np.roll(position, 1)
     prev_position[0] = 0
     return btc_returns * prev_position

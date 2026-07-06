@@ -94,3 +94,37 @@ def test_generate_signals():
     assert signals2[0] == 0.0 # Initial
     assert signals2[1] == 1.0 # Buy
     assert signals2[2] == 0.0 # Sell signal
+
+def test_calculate_strategy_returns():
+    from bitcoin_trading import _calculate_strategy_returns
+    import numpy as np
+
+    # Scenario 1: Normal operation
+    btc_returns = np.array([0.0, 0.05, -0.02, 0.10, -0.05])
+    position = np.array([1.0, 1.0, 0.0, 1.0, 0.0])
+    expected = np.array([0.0, 0.05, -0.02, 0.0, -0.05])
+    result = _calculate_strategy_returns(btc_returns, position)
+    np.testing.assert_array_almost_equal(result, expected)
+
+    # Scenario 2: All hold
+    position_hold = np.array([1.0, 1.0, 1.0, 1.0, 1.0])
+    expected_hold = np.array([0.0, 0.05, -0.02, 0.10, -0.05])
+    result_hold = _calculate_strategy_returns(btc_returns, position_hold)
+    np.testing.assert_array_almost_equal(result_hold, expected_hold)
+
+    # Scenario 3: All cash
+    position_cash = np.array([0.0, 0.0, 0.0, 0.0, 0.0])
+    expected_cash = np.array([0.0, 0.0, 0.0, 0.0, 0.0])
+    result_cash = _calculate_strategy_returns(btc_returns, position_cash)
+    np.testing.assert_array_almost_equal(result_cash, expected_cash)
+
+    # Scenario 4: Single element array
+    btc_returns_single = np.array([0.10])
+    position_single = np.array([1.0])
+    expected_single = np.array([0.0])
+    result_single = _calculate_strategy_returns(btc_returns_single, position_single)
+    np.testing.assert_array_almost_equal(result_single, expected_single)
+
+    # Scenario 5: Empty arrays
+    result_empty = _calculate_strategy_returns(np.array([]), np.array([]))
+    assert len(result_empty) == 0
