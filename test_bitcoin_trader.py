@@ -94,3 +94,27 @@ def test_generate_signals():
     assert signals2[0] == 0.0 # Initial
     assert signals2[1] == 1.0 # Buy
     assert signals2[2] == 0.0 # Sell signal
+
+def test_calculate_btc_returns():
+    import numpy as np
+    from bitcoin_trading import _calculate_btc_returns
+
+    # Test empty array
+    empty_result = _calculate_btc_returns(np.array([]))
+    assert len(empty_result) == 0
+
+    # Test normal prices
+    prices = np.array([100.0, 110.0, 104.5])
+    returns = _calculate_btc_returns(prices)
+    assert len(returns) == 3
+    assert returns[0] == 0.0
+    np.testing.assert_almost_equal(returns[1], 0.1)
+    np.testing.assert_almost_equal(returns[2], -0.05)
+
+    # Test prices with zeros
+    prices_with_zeros = np.array([100.0, 0.0, 50.0])
+    returns_with_zeros = _calculate_btc_returns(prices_with_zeros)
+    assert len(returns_with_zeros) == 3
+    assert returns_with_zeros[0] == 0.0
+    assert returns_with_zeros[1] == -1.0
+    assert returns_with_zeros[2] == 0.0
