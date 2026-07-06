@@ -94,3 +94,17 @@ def test_generate_signals():
     assert signals2[0] == 0.0 # Initial
     assert signals2[1] == 1.0 # Buy
     assert signals2[2] == 0.0 # Sell signal
+
+def test_calculate_portfolio_empty_prices():
+    import numpy as np
+    from bitcoin_trading import _calculate_portfolio
+
+    prices = np.array([])
+    position = np.array([])
+    initial_cash = 10000.0
+
+    portfolio_value, cash_held, btc_held = _calculate_portfolio(prices, position, initial_cash)
+
+    assert len(portfolio_value) == 0
+    assert len(cash_held) == 0
+    assert len(btc_held) == 0
