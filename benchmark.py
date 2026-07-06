@@ -2,13 +2,16 @@ import secrets
 import timeit
 import numpy as np
 
-def original(days=10000, initial_price=50000.0, volatility=0.04, drift=0.001, seed=None):
-    if days <= 0:
-        return []
+def get_shocks(days, seed):
     if seed is None:
         seed = secrets.randbits(128)
     rng = np.random.default_rng(seed)
-    shocks = rng.normal(0, 1, days - 1)
+    return rng.normal(0, 1, days - 1)
+
+def original(days=10000, initial_price=50000.0, volatility=0.04, drift=0.001, seed=None):
+    if days <= 0:
+        return []
+    shocks = get_shocks(days, seed)
     price_changes = np.exp((drift - 0.5 * volatility**2) + volatility * shocks)
     prices = np.concatenate(([initial_price], initial_price * np.cumprod(price_changes)))
     return prices.tolist()
@@ -16,10 +19,7 @@ def original(days=10000, initial_price=50000.0, volatility=0.04, drift=0.001, se
 def optimized(days=10000, initial_price=50000.0, volatility=0.04, drift=0.001, seed=None):
     if days <= 0:
         return []
-    if seed is None:
-        seed = secrets.randbits(128)
-    rng = np.random.default_rng(seed)
-    shocks = rng.normal(0, 1, days - 1)
+    shocks = get_shocks(days, seed)
     log_returns = (drift - 0.5 * volatility**2) + volatility * shocks
     prices = np.empty(days)
     prices[0] = initial_price
