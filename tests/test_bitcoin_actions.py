@@ -2,7 +2,7 @@ import numpy as np
 from bitcoin_trading import _generate_actions
 
 def test_generate_actions_empty():
-    actions = _generate_actions(np.array([]), np.array([]), np.array([]), np.array([]), 10000.0)
+    actions = _generate_actions(np.array([]), np.array([]), np.array([]))
     assert len(actions) == 0
 
 def test_generate_actions_hold():
@@ -12,7 +12,7 @@ def test_generate_actions_hold():
     btc_held = np.array([0.0, 0.0, 0.0])
     initial_cash = 10000.0
 
-    actions = _generate_actions(prices, position, portfolio_value, btc_held, initial_cash)
+    actions = _generate_actions(position, portfolio_value, btc_held)
     assert np.array_equal(actions, np.full(3, "HOLD"))
 
 def test_generate_actions_buy():
@@ -22,7 +22,7 @@ def test_generate_actions_buy():
     btc_held = np.array([0.0, 0.2, 0.2])
     initial_cash = 10000.0
 
-    actions = _generate_actions(prices, position, portfolio_value, btc_held, initial_cash)
+    actions = _generate_actions(position, portfolio_value, btc_held)
     assert actions[0] == "HOLD"
     assert actions[1] == "BUY 0.2000 BTC"
     assert actions[2] == "HOLD"
@@ -34,7 +34,7 @@ def test_generate_actions_sell():
     btc_held = np.array([0.0, 0.2, 0.0])
     initial_cash = 10000.0
 
-    actions = _generate_actions(prices, position, portfolio_value, btc_held, initial_cash)
+    actions = _generate_actions(position, portfolio_value, btc_held)
     assert actions[0] == "HOLD"
     assert actions[1] == "BUY 0.2000 BTC"
     assert actions[2] == "SELL 0.2000 BTC"
@@ -46,7 +46,7 @@ def test_generate_actions_sell_initial():
     btc_held = np.array([0.2, 0.2, 0.0])
     initial_cash = 10000.0
 
-    actions = _generate_actions(prices, position, portfolio_value, btc_held, initial_cash)
+    actions = _generate_actions(position, portfolio_value, btc_held)
     assert actions[0] == "BUY 0.2000 BTC"
     assert actions[1] == "HOLD"
     assert actions[2] == "SELL 0.2000 BTC"
@@ -58,7 +58,7 @@ def test_generate_actions_zero_prices():
     btc_held = np.array([0.0, 10000.0, 0.0])
     initial_cash = 10000.0
 
-    actions = _generate_actions(prices, position, portfolio_value, btc_held, initial_cash)
+    actions = _generate_actions(position, portfolio_value, btc_held)
     assert actions[0] == "HOLD"
     assert actions[1] == "BUY 10000.0000 BTC"
     assert actions[2] == "SELL 10000.0000 BTC"

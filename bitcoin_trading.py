@@ -88,27 +88,20 @@ def _calculate_portfolio(prices, position, initial_cash):
 
     return portfolio_value, cash_held, btc_held
 
-def _generate_actions(prices, position, portfolio_value, btc_held, initial_cash):
-    if len(prices) == 0:
+def _generate_actions(position, portfolio_value, btc_held):
+    if len(position) == 0:
         return np.array([])
     prev_position = np.roll(position, 1)
     prev_position[0] = 0
 
-    prev_portfolio_value = np.roll(portfolio_value, 1)
-    prev_portfolio_value[0] = initial_cash
-
-    prev_prices_arr = np.roll(prices, 1)
-    prev_prices_arr[0] = 1.0
-    safe_prev_prices = np.where(prev_prices_arr != 0, prev_prices_arr, 1.0)
-
-    # The BTC we held yesterday is prev_portfolio_value / prev_prices_arr
-    prev_btc_held = np.where(prev_position == 1, prev_portfolio_value / safe_prev_prices, 0.0)
+    prev_btc_held = np.roll(btc_held, 1)
+    prev_btc_held[0] = 0.0
 
     is_buy = (position == 1) & (prev_position == 0) & (portfolio_value > 0)
     # We sell if we were holding BTC and now we are not. And we only sell if we actually held BTC.
     is_sell = (position == 0) & (prev_position == 1) & (prev_btc_held > 0)
 
-    action = np.full(len(prices), "HOLD", dtype=object)
+    action = np.full(len(position), "HOLD", dtype=object)
 
     buy_indices = np.where(is_buy)[0]
     sell_indices = np.where(is_sell)[0]
@@ -135,7 +128,7 @@ def run_trading_algorithm(df):
 
     position = _generate_signals(ma7, ma30, df.index)
     portfolio_value, cash_held, btc_held = _calculate_portfolio(prices, position, initial_cash)
-    action = _generate_actions(prices, position, portfolio_value, btc_held, initial_cash)
+    action = _generate_actions(position, portfolio_value, btc_held)
 
     return pd.DataFrame({
         'Date': dates,
