@@ -94,3 +94,17 @@ def test_generate_signals():
     assert signals2[0] == 0.0 # Initial
     assert signals2[1] == 1.0 # Buy
     assert signals2[2] == 0.0 # Sell signal
+
+def test_generate_actions_empty():
+    import numpy as np
+    from bitcoin_trading import _generate_actions
+
+    prices = np.array([])
+    position = np.array([])
+    portfolio_value = np.array([])
+    btc_held = np.array([])
+    initial_cash = 10000.0
+
+    result = _generate_actions(prices, position, portfolio_value, btc_held, initial_cash)
+    assert len(result) == 0
+    assert isinstance(result, np.ndarray)
