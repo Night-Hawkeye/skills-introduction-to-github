@@ -1,10 +1,10 @@
 import pytest
-from bitcoin_trading import simulate_bitcoin_prices
+from bitcoin_trading import simulate_bitcoin_prices, SimulationConfig
 
 def test_predictability():
     """Test that simulate_bitcoin_prices produces different output on consecutive runs."""
-    df1 = simulate_bitcoin_prices(days=10)
-    df2 = simulate_bitcoin_prices(days=10)
+    df1 = simulate_bitcoin_prices(SimulationConfig(days=10))
+    df2 = simulate_bitcoin_prices(SimulationConfig(days=10))
 
     prices1 = df1['Price'].tolist()
     prices2 = df2['Price'].tolist()

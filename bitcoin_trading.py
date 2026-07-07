@@ -2,23 +2,38 @@ import pandas as pd
 import numpy as np
 import secrets
 from datetime import datetime, timedelta, timezone
+from dataclasses import dataclass
+from typing import Optional
 
-def simulate_bitcoin_prices(days=60, initial_price=50000.0, volatility=0.04, drift=0.001, seed=None):
+@dataclass
+class SimulationConfig:
+    days: int = 60
+    initial_price: float = 50000.0
+    volatility: float = 0.04
+    drift: float = 0.001
+    seed: Optional[int] = None
+
+
+def simulate_bitcoin_prices(config: SimulationConfig = None):
     """Simulate Bitcoin prices using Geometric Brownian Motion."""
+    if config is None:
+        config = SimulationConfig()
+
     # Vectorized random number generation for performance
+    seed = config.seed
     if seed is None:
         seed = secrets.randbits(128)
     rng = np.random.default_rng(seed)
-    shocks = rng.normal(0, 1, days - 1)
-    log_returns = (drift - 0.5 * volatility**2) + volatility * shocks
-    prices = np.empty(days)
-    prices[0] = initial_price
-    if days > 1:
-        prices[1:] = initial_price * np.exp(np.cumsum(log_returns))
+    shocks = rng.normal(0, 1, config.days - 1)
+    log_returns = (config.drift - 0.5 * config.volatility**2) + config.volatility * shocks
+    prices = np.empty(config.days)
+    prices[0] = config.initial_price
+    if config.days > 1:
+        prices[1:] = config.initial_price * np.exp(np.cumsum(log_returns))
 
     # Fast datetime generation
-    start_date = datetime.now(timezone.utc) - timedelta(days=days - 1)
-    dates = pd.date_range(start=start_date, periods=days)
+    start_date = datetime.now(timezone.utc) - timedelta(days=config.days - 1)
+    dates = pd.date_range(start=start_date, periods=config.days)
 
     df = pd.DataFrame({'Date': dates, 'Price': prices})
     return df
@@ -143,7 +158,7 @@ def run_trading_algorithm(df):
 
 if __name__ == "__main__":
     print("Simulating 60 days of Bitcoin prices...")
-    df = simulate_bitcoin_prices(60)
+    df = simulate_bitcoin_prices(SimulationConfig(days=60))
     df = calculate_moving_averages(df)
 
     print("\nRunning Golden Cross trading algorithm...")
