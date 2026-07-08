@@ -105,6 +105,6 @@ def test_generate_actions_empty():
     btc_held = np.array([])
     initial_cash = 10000.0
 
-    result = _generate_actions(prices, position, portfolio_value, btc_held, initial_cash)
+    result = _generate_actions(position, portfolio_value, btc_held)
     assert len(result) == 0
     assert isinstance(result, np.ndarray)
