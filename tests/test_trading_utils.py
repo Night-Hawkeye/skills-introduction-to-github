@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 import pytest
-from datetime import datetime, timedelta
 from bitcoin_trading import run_trading_algorithm, simulate_bitcoin_prices, calculate_moving_averages, SimulationConfig
 
 def create_mock_df(prices, ma7s, ma30s):
