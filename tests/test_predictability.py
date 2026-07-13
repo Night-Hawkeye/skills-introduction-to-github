@@ -1,4 +1,3 @@
-import pytest
 from bitcoin_trading import simulate_bitcoin_prices, SimulationConfig
 
 def test_predictability():
