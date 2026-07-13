@@ -1,5 +1,3 @@
-import pytest
-
 def test_bots_init_imports():
     """Test that the bots package can be imported and exposes PositiveVibesBot."""
     import bots
