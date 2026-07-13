@@ -108,3 +108,37 @@ def test_generate_actions_empty():
     result = _generate_actions(position, portfolio_value, btc_held)
     assert len(result) == 0
     assert isinstance(result, np.ndarray)
+
+def test_calculate_asset_holdings():
+    import numpy as np
+    from bitcoin_trading import _calculate_asset_holdings
+
+    # 1. Happy path: positions 0 and 1
+    portfolio_value = np.array([1000.0, 2000.0, 1500.0, 3000.0])
+    prices = np.array([10.0, 20.0, 15.0, 30.0])
+    position = np.array([0, 1, 1, 0])
+
+    btc_held, cash_held = _calculate_asset_holdings(portfolio_value, prices, position)
+
+    np.testing.assert_array_equal(btc_held, np.array([0.0, 100.0, 100.0, 0.0]))
+    np.testing.assert_array_equal(cash_held, np.array([1000.0, 0.0, 0.0, 3000.0]))
+
+    # 2. Edge case: zero price
+    portfolio_value_zero = np.array([1000.0, 2000.0])
+    prices_zero = np.array([0.0, 0.0])
+    position_zero = np.array([0, 1])
+
+    btc_held_zero, cash_held_zero = _calculate_asset_holdings(portfolio_value_zero, prices_zero, position_zero)
+
+    np.testing.assert_array_equal(btc_held_zero, np.array([0.0, 0.0]))
+    np.testing.assert_array_equal(cash_held_zero, np.array([1000.0, 0.0]))
+
+    # 3. Empty arrays
+    portfolio_value_empty = np.array([])
+    prices_empty = np.array([])
+    position_empty = np.array([])
+
+    btc_held_empty, cash_held_empty = _calculate_asset_holdings(portfolio_value_empty, prices_empty, position_empty)
+
+    np.testing.assert_array_equal(btc_held_empty, np.array([]))
+    np.testing.assert_array_equal(cash_held_empty, np.array([]))
