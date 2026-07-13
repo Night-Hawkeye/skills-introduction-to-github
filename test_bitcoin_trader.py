@@ -108,3 +108,23 @@ def test_generate_actions_empty():
     result = _generate_actions(position, portfolio_value, btc_held)
     assert len(result) == 0
     assert isinstance(result, np.ndarray)
+
+def test_calculate_btc_returns():
+    import numpy as np
+    from bitcoin_trading import _calculate_btc_returns
+
+    # Test empty
+    assert len(_calculate_btc_returns(np.array([]))) == 0
+
+    # Test single
+    res_single = _calculate_btc_returns(np.array([100.0]))
+    assert len(res_single) == 1
+    assert res_single[0] == 0.0
+
+    # Test normal
+    res_normal = _calculate_btc_returns(np.array([100.0, 110.0, 104.5]))
+    np.testing.assert_array_almost_equal(res_normal, [0.0, 0.1, -0.05])
+
+    # Test zero prev
+    res_zero = _calculate_btc_returns(np.array([100.0, 0.0, 10.0]))
+    np.testing.assert_array_almost_equal(res_zero, [0.0, -1.0, 0.0])
