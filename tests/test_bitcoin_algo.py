@@ -1,4 +1,3 @@
-import pytest
 import pandas as pd
 from datetime import datetime
 from bitcoin_trading import run_trading_algorithm
