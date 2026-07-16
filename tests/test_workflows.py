@@ -1,5 +1,4 @@
 import yaml
-import pytest
 import os
 
 def load_workflow(filename):
