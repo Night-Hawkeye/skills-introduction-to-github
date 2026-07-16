@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-import pytest
 from bitcoin_trading import simulate_bitcoin_prices, calculate_moving_averages, run_trading_algorithm, SimulationConfig
 
 def create_mock_df(prices, ma7s, ma30s):
