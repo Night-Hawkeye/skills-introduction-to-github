@@ -1,6 +1,5 @@
 import pytest
 import pandas as pd
-import numpy as np
 from datetime import datetime
 from bitcoin_trading import run_trading_algorithm
 
