@@ -76,3 +76,10 @@ def test_edge_cases():
     assert optimized(days=0) == []
     assert original(days=-1) == []
     assert optimized(days=-1) == []
+
+def test_seed_none():
+    """Test that original and optimized handle seed=None correctly."""
+    orig_prices = original(days=5, seed=None)
+    opt_prices = optimized(days=5, seed=None)
+    assert len(orig_prices) == 5
+    assert len(opt_prices) == 5
