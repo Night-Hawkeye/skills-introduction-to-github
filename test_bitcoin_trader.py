@@ -99,11 +99,9 @@ def test_generate_actions_empty():
     import numpy as np
     from bitcoin_trading import _generate_actions
 
-    prices = np.array([])
     position = np.array([])
     portfolio_value = np.array([])
     btc_held = np.array([])
-    initial_cash = 10000.0
 
     result = _generate_actions(position, portfolio_value, btc_held)
     assert len(result) == 0
