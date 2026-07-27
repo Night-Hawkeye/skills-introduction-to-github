@@ -53,10 +53,23 @@ def test_calculate_moving_averages_edge_cases():
 
 def test_run_trading_algorithm_empty_df():
     from bitcoin_trading import run_trading_algorithm
-    df_empty = pd.DataFrame({'Date': pd.Series([], dtype='datetime64[ns]'), 'Price': pd.Series([], dtype=float), 'MA7': pd.Series([], dtype=float), 'MA30': pd.Series([], dtype=float)})
-    result = run_trading_algorithm(df_empty)
-    assert isinstance(result, pd.DataFrame)
-    assert len(result) == 0
+
+    # Test with empty DataFrame having expected columns
+    df_empty_with_cols = pd.DataFrame({
+        'Date': pd.Series([], dtype='datetime64[ns]'),
+        'Price': pd.Series([], dtype=float),
+        'MA7': pd.Series([], dtype=float),
+        'MA30': pd.Series([], dtype=float)
+    })
+    result_with_cols = run_trading_algorithm(df_empty_with_cols)
+    assert isinstance(result_with_cols, pd.DataFrame)
+    assert len(result_with_cols) == 0
+
+    # Test with completely empty DataFrame (no columns)
+    df_empty_no_cols = pd.DataFrame()
+    result_no_cols = run_trading_algorithm(df_empty_no_cols)
+    assert isinstance(result_no_cols, pd.DataFrame)
+    assert len(result_no_cols) == 0
 
 
 def test_generate_signals():
