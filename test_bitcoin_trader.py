@@ -137,3 +137,9 @@ def test_calculate_strategy_returns():
     position_empty = np.array([])
     strat_returns_empty = _calculate_strategy_returns(btc_returns_empty, position_empty)
     assert len(strat_returns_empty) == 0
+
+def test_simulate_bitcoin_prices_no_config():
+    df = simulate_bitcoin_prices()
+    assert len(df) == 60
+    assert 'Date' in df.columns
+    assert 'Price' in df.columns
