@@ -22,7 +22,7 @@ class PositiveVibesBot(ActivityHandler):
         ]
 
     async def on_members_added_activity(
-        self, members_added: [ChannelAccount], turn_context: TurnContext
+        self, members_added: list[ChannelAccount], turn_context: TurnContext
     ):
         tasks = []
         for member in members_added:
