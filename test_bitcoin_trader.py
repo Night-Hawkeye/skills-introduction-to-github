@@ -137,3 +137,12 @@ def test_calculate_strategy_returns():
     position_empty = np.array([])
     strat_returns_empty = _calculate_strategy_returns(btc_returns_empty, position_empty)
     assert len(strat_returns_empty) == 0
+
+def test_simulate_bitcoin_prices_without_seed():
+    df1 = simulate_bitcoin_prices(SimulationConfig(days=10))
+    df2 = simulate_bitcoin_prices(SimulationConfig(days=10))
+
+    prices1 = df1['Price'].tolist()
+    prices2 = df2['Price'].tolist()
+
+    assert prices1 != prices2
