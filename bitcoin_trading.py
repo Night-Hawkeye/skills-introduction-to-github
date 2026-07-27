@@ -70,12 +70,15 @@ def _generate_signals(ma7, ma30, index):
     signals.loc[sell_signal] = 0
     return signals.ffill().fillna(0).values
 
+def _safe_divide(numerator, denominator):
+    safe_denom = np.where(denominator != 0, denominator, 1.0)
+    return np.where(denominator != 0, numerator / safe_denom, 0.0)
+
 def _calculate_btc_returns(prices):
     btc_returns = np.zeros(len(prices))
     prev_prices = prices[:-1]
     curr_prices = prices[1:]
-    safe_div = np.where(prev_prices != 0, prev_prices, 1.0)
-    btc_returns[1:] = np.where(prev_prices != 0, (curr_prices - prev_prices) / safe_div, 0.0)
+    btc_returns[1:] = _safe_divide(curr_prices - prev_prices, prev_prices)
     return btc_returns
 
 def _calculate_strategy_returns(btc_returns, position):
@@ -86,8 +89,7 @@ def _calculate_strategy_returns(btc_returns, position):
     return btc_returns * prev_position
 
 def _calculate_asset_holdings(portfolio_value, prices, position):
-    safe_prices = np.where(prices != 0, prices, 1.0)
-    btc_held = np.where((position == 1) & (prices != 0), portfolio_value / safe_prices, 0.0)
+    btc_held = np.where(position == 1, _safe_divide(portfolio_value, prices), 0.0)
     cash_held = np.where(position == 0, portfolio_value, 0.0)
     return btc_held, cash_held
 
