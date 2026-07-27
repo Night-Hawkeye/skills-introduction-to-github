@@ -137,3 +137,13 @@ def test_calculate_strategy_returns():
     position_empty = np.array([])
     strat_returns_empty = _calculate_strategy_returns(btc_returns_empty, position_empty)
     assert len(strat_returns_empty) == 0
+
+def test_calculate_strategy_returns_empty_position():
+    import numpy as np
+    from bitcoin_trading import _calculate_strategy_returns
+
+    btc_returns = np.array([0.1, 0.2, 0.3])
+    position = np.array([])
+    strat_returns = _calculate_strategy_returns(btc_returns, position)
+    assert len(strat_returns) == 0
+    assert isinstance(strat_returns, np.ndarray)
