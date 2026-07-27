@@ -25,9 +25,8 @@ def simulate_bitcoin_prices(config: SimulationConfig = None):
         secure_rng = secrets.SystemRandom()
         shocks = np.array([secure_rng.gauss(0.0, 1.0) for _ in range(config.days - 1)])
     else:
-        import random
-        rng = random.Random(seed)
-        shocks = np.array([rng.gauss(0.0, 1.0) for _ in range(config.days - 1)])
+        rng = np.random.default_rng(seed)
+        shocks = rng.normal(0.0, 1.0, config.days - 1)
     log_returns = (config.drift - 0.5 * config.volatility**2) + config.volatility * shocks
     prices = np.empty(config.days)
     prices[0] = config.initial_price
