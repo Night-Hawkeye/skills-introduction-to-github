@@ -1,6 +1,17 @@
 import secrets
 import timeit
 import numpy as np
+from dataclasses import dataclass
+from typing import Optional
+
+@dataclass
+class SimulationConfig:
+    days: int = 10000
+    initial_price: float = 50000.0
+    volatility: float = 0.04
+    drift: float = 0.001
+    seed: Optional[int] = None
+
 
 def get_shocks(days, seed):
     if seed is None:
@@ -8,7 +19,10 @@ def get_shocks(days, seed):
     rng = np.random.default_rng(seed)
     return rng.normal(0, 1, days - 1)
 
-def original(days=10000, initial_price=50000.0, volatility=0.04, drift=0.001, seed=None):
+def original(config: SimulationConfig = None):
+    if config is None:
+        config = SimulationConfig()
+    days, initial_price, volatility, drift, seed = config.days, config.initial_price, config.volatility, config.drift, config.seed
     if days <= 0:
         return []
     shocks = get_shocks(days, seed)
@@ -16,7 +30,10 @@ def original(days=10000, initial_price=50000.0, volatility=0.04, drift=0.001, se
     prices = np.concatenate(([initial_price], initial_price * np.cumprod(price_changes)))
     return prices.tolist()
 
-def optimized(days=10000, initial_price=50000.0, volatility=0.04, drift=0.001, seed=None):
+def optimized(config: SimulationConfig = None):
+    if config is None:
+        config = SimulationConfig()
+    days, initial_price, volatility, drift, seed = config.days, config.initial_price, config.volatility, config.drift, config.seed
     if days <= 0:
         return []
     shocks = get_shocks(days, seed)
@@ -28,14 +45,14 @@ def optimized(days=10000, initial_price=50000.0, volatility=0.04, drift=0.001, s
 
 if __name__ == '__main__':
     bench_seed = secrets.randbits(128)
-    t_orig = timeit.timeit(f'original(seed={bench_seed})', globals=globals(), number=100)
-    t_opt = timeit.timeit(f'optimized(seed={bench_seed})', globals=globals(), number=100)
+    t_orig = timeit.timeit(f'original(SimulationConfig(seed={bench_seed}))', globals=globals(), number=100)
+    t_opt = timeit.timeit(f'optimized(SimulationConfig(seed={bench_seed}))', globals=globals(), number=100)
     print(f"Original: {t_orig:.4f}s")
     print(f"Optimized: {t_opt:.4f}s")
     print(f"Speedup: {t_orig/t_opt:.2f}x")
 
     # Assert correctness
     test_seed = secrets.randbits(128)
-    orig_res = original(days=10, seed=test_seed)
-    opt_res = optimized(days=10, seed=test_seed)
+    orig_res = original(SimulationConfig(days=10, seed=test_seed))
+    opt_res = optimized(SimulationConfig(days=10, seed=test_seed))
     assert np.allclose(orig_res, opt_res), f"Results do not match!\nOrig: {orig_res}\nOpt: {opt_res}"

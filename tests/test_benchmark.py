@@ -1,10 +1,10 @@
 import numpy as np
-from benchmark import original, optimized
+from benchmark import original, optimized, SimulationConfig
 from unittest.mock import MagicMock
 
 def test_original_basic():
     """Test original benchmark with deterministic seed."""
-    prices = original(days=5, initial_price=100.0, volatility=0.1, drift=0.01)
+    prices = original(SimulationConfig(days=5, initial_price=100.0, volatility=0.1, drift=0.01))
     assert len(prices) == 5
     assert prices[0] == 100.0
 
@@ -22,7 +22,7 @@ def test_original_math(mocker):
     volatility = 0.1
     drift = 0.01
 
-    prices = original(days=4, initial_price=initial_price, volatility=volatility, drift=drift)
+    prices = original(SimulationConfig(days=4, initial_price=initial_price, volatility=volatility, drift=drift))
 
     assert len(prices) == 4
     assert prices[0] == 100.0
@@ -34,7 +34,7 @@ def test_original_math(mocker):
 
 def test_optimized_basic():
     """Test optimized benchmark with deterministic seed."""
-    prices = optimized(days=5, initial_price=100.0, volatility=0.1, drift=0.01)
+    prices = optimized(SimulationConfig(days=5, initial_price=100.0, volatility=0.1, drift=0.01))
     assert len(prices) == 5
     assert prices[0] == 100.0
 
@@ -51,7 +51,7 @@ def test_optimized_math(mocker):
     volatility = 0.1
     drift = 0.01
 
-    prices = optimized(days=4, initial_price=initial_price, volatility=volatility, drift=drift)
+    prices = optimized(SimulationConfig(days=4, initial_price=initial_price, volatility=volatility, drift=drift))
 
     assert len(prices) == 4
     assert prices[0] == 100.0
@@ -65,21 +65,21 @@ def test_original_vs_optimized():
     """Test that original and optimized return exactly the same results."""
     # We must use the same seed for both so we don't rely on random matching
     test_seed = 12345
-    orig_res = original(days=10, initial_price=50000.0, volatility=0.04, drift=0.001, seed=test_seed)
-    opt_res = optimized(days=10, initial_price=50000.0, volatility=0.04, drift=0.001, seed=test_seed)
+    orig_res = original(SimulationConfig(days=10, initial_price=50000.0, volatility=0.04, drift=0.001, seed=test_seed))
+    opt_res = optimized(SimulationConfig(days=10, initial_price=50000.0, volatility=0.04, drift=0.001, seed=test_seed))
 
     assert np.allclose(orig_res, opt_res)
 
 def test_edge_cases():
     """Test that days <= 0 returns an empty list for both implementations."""
-    assert original(days=0) == []
-    assert optimized(days=0) == []
-    assert original(days=-1) == []
-    assert optimized(days=-1) == []
+    assert original(SimulationConfig(days=0)) == []
+    assert optimized(SimulationConfig(days=0)) == []
+    assert original(SimulationConfig(days=-1)) == []
+    assert optimized(SimulationConfig(days=-1)) == []
 
 def test_seed_none():
     """Test that original and optimized handle seed=None correctly."""
-    orig_prices = original(days=5, seed=None)
-    opt_prices = optimized(days=5, seed=None)
+    orig_prices = original(SimulationConfig(days=5, seed=None))
+    opt_prices = optimized(SimulationConfig(days=5, seed=None))
     assert len(orig_prices) == 5
     assert len(opt_prices) == 5
