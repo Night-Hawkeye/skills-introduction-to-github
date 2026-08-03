@@ -23,7 +23,7 @@ CONFIG = DefaultConfig()
 ADAPTER = CloudAdapter(ConfigurationBotFrameworkAuthentication(CONFIG))
 
 # Catch-all for errors.
-async def on_error(context: TurnContext, error: Exception):
+async def on_error(context: TurnContext, _error: Exception):
     print("\n [on_turn_error] unhandled error: An unhandled error occurred.", file=sys.stderr)
 
     # Send a message to the user
