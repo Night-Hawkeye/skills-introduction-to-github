@@ -108,6 +108,17 @@ def test_generate_signals():
     assert signals2[1] == 1.0 # Buy
     assert signals2[2] == 0.0 # Sell signal
 
+    # Test edge case with multiple identical values and np.nan
+    index3 = pd.Index([0, 1, 2, 3])
+    ma7_3 = np.array([np.nan, 20.0, 10.0, 20.0])
+    ma30_3 = np.array([15.0, 15.0, 15.0, 15.0])
+    signals3 = _generate_signals(ma7_3, ma30_3, index3)
+    assert len(signals3) == 4
+    assert signals3[0] == 0.0
+    assert signals3[1] == 0.0
+    assert signals3[2] == 0.0
+    assert signals3[3] == 1.0
+
 def test_generate_actions_empty():
     import numpy as np
     from bitcoin_trading import _generate_actions
