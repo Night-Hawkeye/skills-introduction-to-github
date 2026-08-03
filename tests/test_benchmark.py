@@ -1,5 +1,5 @@
 import numpy as np
-from benchmark import original, optimized
+from benchmark import original, optimized, get_shocks
 from unittest.mock import MagicMock
 
 def test_original_basic():
@@ -83,3 +83,35 @@ def test_seed_none():
     opt_prices = optimized(days=5, seed=None)
     assert len(orig_prices) == 5
     assert len(opt_prices) == 5
+
+def test_get_shocks_shape():
+    """Test get_shocks returns the correct shape."""
+    shocks = get_shocks(days=10, seed=123)
+    assert len(shocks) == 9
+    assert isinstance(shocks, np.ndarray)
+
+def test_get_shocks_determinism():
+    """Test get_shocks is deterministic given a seed."""
+    seed = 42
+    shocks1 = get_shocks(days=5, seed=seed)
+    shocks2 = get_shocks(days=5, seed=seed)
+    assert np.allclose(shocks1, shocks2)
+
+def test_get_shocks_different_seeds():
+    """Test get_shocks produces different results for different seeds."""
+    shocks1 = get_shocks(days=5, seed=42)
+    shocks2 = get_shocks(days=5, seed=43)
+    assert not np.allclose(shocks1, shocks2)
+
+def test_get_shocks_none_seed():
+    """Test get_shocks works when seed is None."""
+    shocks = get_shocks(days=5, seed=None)
+    assert len(shocks) == 4
+
+def test_get_shocks_mock_secrets(mocker):
+    """Test get_shocks uses secrets.randbits when seed is None."""
+    mock_randbits = mocker.patch('secrets.randbits', return_value=12345)
+    shocks1 = get_shocks(days=5, seed=None)
+    shocks2 = get_shocks(days=5, seed=12345)
+    mock_randbits.assert_called_once_with(128)
+    assert np.allclose(shocks1, shocks2)
