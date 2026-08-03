@@ -158,3 +158,30 @@ def test_calculate_strategy_returns_empty_position():
     strat_returns = _calculate_strategy_returns(btc_returns, position)
     assert len(strat_returns) == 0
     assert isinstance(strat_returns, np.ndarray)
+
+def test_calculate_asset_holdings():
+    import numpy as np
+    from bitcoin_trading import _calculate_asset_holdings
+
+    portfolio_value = np.array([1000.0, 1200.0, 900.0, 1100.0])
+    prices = np.array([100.0, 120.0, 90.0, 100.0])
+    position = np.array([0, 1, 1, 0])
+
+    btc_held, cash_held = _calculate_asset_holdings(portfolio_value, prices, position)
+
+    np.testing.assert_array_almost_equal(btc_held, [0.0, 10.0, 10.0, 0.0])
+    np.testing.assert_array_almost_equal(cash_held, [1000.0, 0.0, 0.0, 1100.0])
+
+    position_cash = np.zeros(4)
+    btc_held_cash, cash_held_cash = _calculate_asset_holdings(portfolio_value, prices, position_cash)
+    np.testing.assert_array_almost_equal(btc_held_cash, np.zeros(4))
+    np.testing.assert_array_almost_equal(cash_held_cash, portfolio_value)
+
+    position_btc = np.ones(4)
+    btc_held_btc, cash_held_btc = _calculate_asset_holdings(portfolio_value, prices, position_btc)
+    np.testing.assert_array_almost_equal(btc_held_btc, [10.0, 10.0, 10.0, 11.0])
+    np.testing.assert_array_almost_equal(cash_held_btc, np.zeros(4))
+
+    btc_held_empty, cash_held_empty = _calculate_asset_holdings(np.array([]), np.array([]), np.array([]))
+    assert len(btc_held_empty) == 0
+    assert len(cash_held_empty) == 0
