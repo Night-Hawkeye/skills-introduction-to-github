@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
-from bitcoin_trading import run_trading_algorithm, simulate_bitcoin_prices, calculate_moving_averages, SimulationConfig
+from bitcoin_trading import run_trading_algorithm, simulate_bitcoin_prices, calculate_moving_averages, SimulationConfig, _safe_divide
 
 def create_mock_df(prices, ma7s, ma30s):
     dates = [pd.Timestamp(2023, 1, 1) + pd.Timedelta(days=i) for i in range(len(prices))]
@@ -138,3 +138,11 @@ def test_calculate_moving_averages():
 
     # 30th element of MA30 should be average of 1 to 30 -> (30 * 31 / 2) / 30 = 15.5
     assert result_df['MA30'].iloc[29] == 15.5
+
+
+def test_safe_divide():
+    numerator = np.array([10.0, 0.0, 5.0, -10.0, 10.0])
+    denominator = np.array([2.0, 5.0, 0.0, 2.0, -2.0])
+    result = _safe_divide(numerator, denominator)
+    expected = np.array([5.0, 0.0, 0.0, -5.0, -5.0])
+    np.testing.assert_array_equal(result, expected)
