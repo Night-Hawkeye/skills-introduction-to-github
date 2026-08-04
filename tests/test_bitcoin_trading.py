@@ -138,3 +138,40 @@ def test_calculate_moving_averages():
 
     # 30th element of MA30 should be average of 1 to 30 -> (30 * 31 / 2) / 30 = 15.5
     assert result_df['MA30'].iloc[29] == 15.5
+
+def test_calculate_strategy_returns():
+    from bitcoin_trading import _calculate_strategy_returns
+
+    # Test happy path
+    btc_returns = np.array([0.0, 0.1, -0.05, 0.2])
+    position = np.array([0, 1, 1, 0])
+    strat_returns = _calculate_strategy_returns(btc_returns, position)
+    assert len(strat_returns) == 4
+    np.testing.assert_array_almost_equal(strat_returns, [0.0, 0.0, -0.05, 0.2])
+
+    # Test all zeros
+    btc_returns_zero = np.zeros(5)
+    position_zero = np.zeros(5)
+    strat_returns_zero = _calculate_strategy_returns(btc_returns_zero, position_zero)
+    np.testing.assert_array_almost_equal(strat_returns_zero, np.zeros(5))
+
+    # Test all ones
+    btc_returns_ones = np.ones(3)
+    position_ones = np.ones(3)
+    strat_returns_ones = _calculate_strategy_returns(btc_returns_ones, position_ones)
+    np.testing.assert_array_almost_equal(strat_returns_ones, [0.0, 1.0, 1.0])
+
+    # Test empty arrays
+    btc_returns_empty = np.array([])
+    position_empty = np.array([])
+    strat_returns_empty = _calculate_strategy_returns(btc_returns_empty, position_empty)
+    assert len(strat_returns_empty) == 0
+
+def test_calculate_strategy_returns_empty_position():
+    from bitcoin_trading import _calculate_strategy_returns
+
+    btc_returns = np.array([0.1, 0.2, 0.3])
+    position = np.array([])
+    strat_returns = _calculate_strategy_returns(btc_returns, position)
+    assert len(strat_returns) == 0
+    assert isinstance(strat_returns, np.ndarray)
