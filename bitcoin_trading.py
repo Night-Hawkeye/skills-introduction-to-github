@@ -69,8 +69,9 @@ def _generate_signals(ma7, ma30, index):
     return signals.ffill().fillna(0).values
 
 def _safe_divide(numerator, denominator):
-    safe_denom = np.where(denominator != 0, denominator, 1.0)
-    return np.where(denominator != 0, numerator / safe_denom, 0.0)
+    mask = denominator != 0
+    safe_denom = np.where(mask, denominator, 1.0)
+    return np.where(mask, numerator / safe_denom, 0.0)
 
 def _calculate_btc_returns(prices):
     btc_returns = np.zeros(len(prices))
