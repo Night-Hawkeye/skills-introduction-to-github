@@ -83,3 +83,22 @@ def test_seed_none():
     opt_prices = optimized(BenchmarkConfig(days=5, seed=None))
     assert len(orig_prices) == 5
     assert len(opt_prices) == 5
+
+def test_get_shocks_shape_and_seed():
+    from benchmark import get_shocks
+    shocks1 = get_shocks(days=10, seed=42)
+    assert len(shocks1) == 9
+    assert isinstance(shocks1, np.ndarray)
+
+    shocks2 = get_shocks(days=10, seed=42)
+    assert np.array_equal(shocks1, shocks2)
+
+def test_get_shocks_no_seed(mocker):
+    from benchmark import get_shocks
+    mock_randbits = mocker.patch('secrets.randbits', return_value=12345)
+    shocks = get_shocks(days=5, seed=None)
+    mock_randbits.assert_called_once_with(128)
+    assert len(shocks) == 4
+
+    expected_shocks = get_shocks(days=5, seed=12345)
+    assert np.array_equal(shocks, expected_shocks)
