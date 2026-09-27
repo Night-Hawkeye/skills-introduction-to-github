@@ -1,5 +1,15 @@
+import numpy as np
 import pandas as pd
-from bitcoin_trading import simulate_bitcoin_prices, calculate_moving_averages, SimulationConfig
+from bitcoin_trading import (
+    SimulationConfig,
+    _calculate_asset_holdings,
+    _calculate_strategy_returns,
+    _generate_actions,
+    _generate_signals,
+    calculate_moving_averages,
+    run_trading_algorithm,
+    simulate_bitcoin_prices
+)
 
 def test_simulate_bitcoin_prices():
     df = simulate_bitcoin_prices(SimulationConfig(days=10))
@@ -52,8 +62,6 @@ def test_calculate_moving_averages_edge_cases():
     assert pd.isna(df_short['MA30']).all()
 
 def test_run_trading_algorithm_empty_df():
-    from bitcoin_trading import run_trading_algorithm
-
     # Test with empty DataFrame having expected columns
     df_empty_with_cols = pd.DataFrame({
         'Date': pd.Series([], dtype='datetime64[ns]'),
@@ -73,10 +81,6 @@ def test_run_trading_algorithm_empty_df():
 
 
 def test_generate_signals():
-    import numpy as np
-    import pandas as pd
-    from bitcoin_trading import _generate_signals
-
     # Test empty arrays
     empty_result = _generate_signals(np.array([]), np.array([]), pd.Index([]))
     assert len(empty_result) == 0
@@ -120,9 +124,6 @@ def test_generate_signals():
     assert signals3[3] == 1.0
 
 def test_generate_actions_empty():
-    import numpy as np
-    from bitcoin_trading import _generate_actions
-
     position = np.array([])
     portfolio_value = np.array([])
     btc_held = np.array([])
@@ -132,9 +133,6 @@ def test_generate_actions_empty():
     assert isinstance(result, np.ndarray)
 
 def test_calculate_strategy_returns():
-    import numpy as np
-    from bitcoin_trading import _calculate_strategy_returns
-
     # Test happy path
     btc_returns = np.array([0.0, 0.1, -0.05, 0.2])
     position = np.array([0, 1, 1, 0])
@@ -161,9 +159,6 @@ def test_calculate_strategy_returns():
     assert len(strat_returns_empty) == 0
 
 def test_calculate_strategy_returns_empty_position():
-    import numpy as np
-    from bitcoin_trading import _calculate_strategy_returns
-
     btc_returns = np.array([0.1, 0.2, 0.3])
     position = np.array([])
     strat_returns = _calculate_strategy_returns(btc_returns, position)
@@ -171,9 +166,6 @@ def test_calculate_strategy_returns_empty_position():
     assert isinstance(strat_returns, np.ndarray)
 
 def test_calculate_asset_holdings():
-    import numpy as np
-    from bitcoin_trading import _calculate_asset_holdings
-
     portfolio_value = np.array([1000.0, 1200.0, 900.0, 1100.0])
     prices = np.array([100.0, 120.0, 90.0, 100.0])
     position = np.array([0, 1, 1, 0])
