@@ -175,3 +175,26 @@ def test_calculate_strategy_returns_empty_position():
     strat_returns = _calculate_strategy_returns(btc_returns, position)
     assert len(strat_returns) == 0
     assert isinstance(strat_returns, np.ndarray)
+
+def test_calculate_btc_returns():
+    from bitcoin_trading import _calculate_btc_returns
+
+    # 1. Happy path: sequential prices
+    prices = np.array([100.0, 110.0, 105.0, 126.0])
+    expected_returns = np.array([0.0, 0.1, -0.045454545454545456, 0.2])
+    np.testing.assert_array_almost_equal(_calculate_btc_returns(prices), expected_returns)
+
+    # 2. Edge case: div by zero (prev price is 0)
+    prices_zero = np.array([0.0, 10.0, 0.0, -5.0])
+    expected_zero = np.array([0.0, 0.0, -1.0, 0.0])
+    np.testing.assert_array_almost_equal(_calculate_btc_returns(prices_zero), expected_zero)
+
+    # 3. Edge case: empty array
+    prices_empty = np.array([])
+    expected_empty = np.array([])
+    np.testing.assert_array_almost_equal(_calculate_btc_returns(prices_empty), expected_empty)
+
+    # 4. Edge case: single element
+    prices_single = np.array([100.0])
+    expected_single = np.array([0.0])
+    np.testing.assert_array_almost_equal(_calculate_btc_returns(prices_single), expected_single)
