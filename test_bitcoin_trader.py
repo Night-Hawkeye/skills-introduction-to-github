@@ -72,7 +72,7 @@ def test_run_trading_algorithm_empty_df():
     assert len(result_no_cols) == 0
 
 
-def test_generate_signals():
+def test_generate_signals_empty():
     import numpy as np
     import pandas as pd
     from bitcoin_trading import _generate_signals
@@ -80,6 +80,11 @@ def test_generate_signals():
     # Test empty arrays
     empty_result = _generate_signals(np.array([]), np.array([]), pd.Index([]))
     assert len(empty_result) == 0
+
+def test_generate_signals_golden_cross():
+    import numpy as np
+    import pandas as pd
+    from bitcoin_trading import _generate_signals
 
     # Test golden cross (MA7 crosses above MA30)
     # Day 0: MA7 < MA30 (Valid: True)
@@ -95,18 +100,29 @@ def test_generate_signals():
     assert signals[1] == 1.0 # Buy signal
     assert signals[2] == 1.0 # Holding
 
+def test_generate_signals_death_cross():
+    import numpy as np
+    import pandas as pd
+    from bitcoin_trading import _generate_signals
+
     # Test death cross (MA7 crosses below MA30)
     # Day 0: MA7 < MA30 (Valid: True)
     # Day 1: MA7 > MA30 (Valid: True) -> Buy
     # Day 2: MA7 < MA30 (Valid: True) -> Sell
     ma7 = np.array([10.0, 40.0, 20.0])
     ma30 = np.array([20.0, 30.0, 30.0])
+    index = pd.Index([0, 1, 2])
     signals2 = _generate_signals(ma7, ma30, index)
 
     assert len(signals2) == 3
     assert signals2[0] == 0.0 # Initial
     assert signals2[1] == 1.0 # Buy
     assert signals2[2] == 0.0 # Sell signal
+
+def test_generate_signals_edge_case():
+    import numpy as np
+    import pandas as pd
+    from bitcoin_trading import _generate_signals
 
     # Test edge case with multiple identical values and np.nan
     index3 = pd.Index([0, 1, 2, 3])
