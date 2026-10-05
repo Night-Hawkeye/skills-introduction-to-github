@@ -43,6 +43,13 @@ def test_calculate_moving_averages_edge_cases():
     assert 'MA30' in df_empty.columns
     assert len(df_empty) == 0
 
+    # Test with completely empty dataframe
+    df_completely_empty = pd.DataFrame()
+    df_completely_empty = calculate_moving_averages(df_completely_empty)
+    assert 'MA7' in df_completely_empty.columns
+    assert 'MA30' in df_completely_empty.columns
+    assert len(df_completely_empty) == 0
+
     # Test with too few rows to calculate any moving average
     dates = pd.date_range(start='2023-01-01', periods=5)
     prices = [10.0, 20.0, 30.0, 40.0, 50.0]
