@@ -1,6 +1,16 @@
+import numpy as np
 import pandas as pd
-from bitcoin_trading import simulate_bitcoin_prices, calculate_moving_averages, SimulationConfig
-
+from bitcoin_trading import (
+    SimulationConfig,
+    _calculate_asset_holdings,
+    _calculate_strategy_returns,
+    _generate_actions,
+    _generate_signals,
+    _safe_divide,
+    calculate_moving_averages,
+    run_trading_algorithm,
+    simulate_bitcoin_prices,
+)
 def test_simulate_bitcoin_prices():
     df = simulate_bitcoin_prices(SimulationConfig(days=10))
     assert len(df) == 10
@@ -52,7 +62,6 @@ def test_calculate_moving_averages_edge_cases():
     assert pd.isna(df_short['MA30']).all()
 
 def test_run_trading_algorithm_empty_df():
-    from bitcoin_trading import run_trading_algorithm
 
     # Test with empty DataFrame having expected columns
     df_empty_with_cols = pd.DataFrame({
@@ -73,18 +82,12 @@ def test_run_trading_algorithm_empty_df():
 
 
 def test_generate_signals_empty():
-    import numpy as np
-    import pandas as pd
-    from bitcoin_trading import _generate_signals
 
     # Test empty arrays
     empty_result = _generate_signals(np.array([]), np.array([]), pd.Index([]))
     assert len(empty_result) == 0
 
 def test_generate_signals_golden_cross():
-    import numpy as np
-    import pandas as pd
-    from bitcoin_trading import _generate_signals
 
     # Test golden cross (MA7 crosses above MA30)
     # Day 0: MA7 < MA30 (Valid: True)
@@ -101,9 +104,6 @@ def test_generate_signals_golden_cross():
     assert signals[2] == 1.0 # Holding
 
 def test_generate_signals_death_cross():
-    import numpy as np
-    import pandas as pd
-    from bitcoin_trading import _generate_signals
 
     # Test death cross (MA7 crosses below MA30)
     # Day 0: MA7 < MA30 (Valid: True)
@@ -120,9 +120,6 @@ def test_generate_signals_death_cross():
     assert signals2[2] == 0.0 # Sell signal
 
 def test_generate_signals_edge_case():
-    import numpy as np
-    import pandas as pd
-    from bitcoin_trading import _generate_signals
 
     # Test edge case with multiple identical values and np.nan
     index3 = pd.Index([0, 1, 2, 3])
@@ -136,8 +133,6 @@ def test_generate_signals_edge_case():
     assert signals3[3] == 1.0
 
 def test_generate_actions_empty():
-    import numpy as np
-    from bitcoin_trading import _generate_actions
 
     position = np.array([])
     portfolio_value = np.array([])
@@ -148,8 +143,6 @@ def test_generate_actions_empty():
     assert isinstance(result, np.ndarray)
 
 def test_calculate_strategy_returns():
-    import numpy as np
-    from bitcoin_trading import _calculate_strategy_returns
 
     # Test happy path
     btc_returns = np.array([0.0, 0.1, -0.05, 0.2])
@@ -177,8 +170,6 @@ def test_calculate_strategy_returns():
     assert len(strat_returns_empty) == 0
 
 def test_calculate_strategy_returns_empty_position():
-    import numpy as np
-    from bitcoin_trading import _calculate_strategy_returns
 
     btc_returns = np.array([0.1, 0.2, 0.3])
     position = np.array([])
@@ -187,8 +178,6 @@ def test_calculate_strategy_returns_empty_position():
     assert isinstance(strat_returns, np.ndarray)
 
 def test_calculate_asset_holdings():
-    import numpy as np
-    from bitcoin_trading import _calculate_asset_holdings
 
     portfolio_value = np.array([1000.0, 1200.0, 900.0, 1100.0])
     prices = np.array([100.0, 120.0, 90.0, 100.0])
@@ -214,8 +203,6 @@ def test_calculate_asset_holdings():
     assert len(cash_held_empty) == 0
 
 def test_safe_divide():
-    from bitcoin_trading import _safe_divide
-    import numpy as np
 
     # Test with arrays
     numerator = np.array([10.0, 20.0, 30.0, 0.0, -10.0])
