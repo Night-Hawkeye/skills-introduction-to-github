@@ -197,3 +197,36 @@ def test_calculate_btc_returns():
     prices_single = np.array([100.0])
     expected_single = np.array([0.0])
     np.testing.assert_array_almost_equal(_calculate_btc_returns(prices_single), expected_single)
+
+def test_calculate_asset_holdings():
+    from bitcoin_trading import _calculate_asset_holdings
+
+    # 1. Happy path: mixed positions
+    portfolio_value = np.array([10000.0, 15000.0, 20000.0, 5000.0])
+    prices = np.array([50000.0, 30000.0, 10000.0, 0.0])
+    position = np.array([0, 1, 1, 0])
+
+    btc_held, cash_held = _calculate_asset_holdings(portfolio_value, prices, position)
+
+    np.testing.assert_array_almost_equal(btc_held, [0.0, 0.5, 2.0, 0.0])
+    np.testing.assert_array_almost_equal(cash_held, [10000.0, 0.0, 0.0, 5000.0])
+
+    # 2. Edge case: empty arrays
+    portfolio_value_empty = np.array([])
+    prices_empty = np.array([])
+    position_empty = np.array([])
+
+    btc_held_empty, cash_held_empty = _calculate_asset_holdings(portfolio_value_empty, prices_empty, position_empty)
+
+    assert len(btc_held_empty) == 0
+    assert len(cash_held_empty) == 0
+
+    # 3. Edge case: division by zero
+    portfolio_value_zero = np.array([10000.0])
+    prices_zero = np.array([0.0])
+    position_zero = np.array([1])
+
+    btc_held_zero, cash_held_zero = _calculate_asset_holdings(portfolio_value_zero, prices_zero, position_zero)
+
+    np.testing.assert_array_almost_equal(btc_held_zero, [0.0])
+    np.testing.assert_array_almost_equal(cash_held_zero, [0.0])
