@@ -197,3 +197,20 @@ def test_calculate_btc_returns():
     prices_single = np.array([100.0])
     expected_single = np.array([0.0])
     np.testing.assert_array_almost_equal(_calculate_btc_returns(prices_single), expected_single)
+
+def test_safe_divide():
+    from bitcoin_trading import _safe_divide
+    import numpy as np
+
+    # Test with arrays
+    numerator = np.array([10.0, 20.0, 30.0, 0.0, -10.0])
+    denominator = np.array([2.0, 0.0, -5.0, 0.0, 0.0])
+
+    result = _safe_divide(numerator, denominator)
+
+    expected = np.array([5.0, 0.0, -6.0, 0.0, 0.0])
+    np.testing.assert_array_equal(result, expected)
+
+    # Test with scalars
+    assert _safe_divide(10.0, 2.0) == 5.0
+    assert _safe_divide(10.0, 0.0) == 0.0
