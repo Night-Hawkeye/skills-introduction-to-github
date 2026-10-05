@@ -18,22 +18,26 @@ def get_shocks(days, seed):
     rng = np.random.default_rng(seed)
     return rng.normal(0, 1, days - 1)
 
-def original(config: BenchmarkConfig = None):
+def _setup_benchmark(config: BenchmarkConfig = None):
     if config is None:
         config = BenchmarkConfig()
     if config.days <= 0:
-        return []
+        return config, None
     shocks = get_shocks(config.days, config.seed)
+    return config, shocks
+
+def original(config: BenchmarkConfig = None):
+    config, shocks = _setup_benchmark(config)
+    if shocks is None:
+        return []
     price_changes = np.exp((config.drift - 0.5 * config.volatility**2) + config.volatility * shocks)
     prices = np.concatenate(([config.initial_price], config.initial_price * np.cumprod(price_changes)))
     return prices.tolist()
 
 def optimized(config: BenchmarkConfig = None):
-    if config is None:
-        config = BenchmarkConfig()
-    if config.days <= 0:
+    config, shocks = _setup_benchmark(config)
+    if shocks is None:
         return []
-    shocks = get_shocks(config.days, config.seed)
     log_returns = (config.drift - 0.5 * config.volatility**2) + config.volatility * shocks
     prices = np.empty(config.days)
     prices[0] = config.initial_price
