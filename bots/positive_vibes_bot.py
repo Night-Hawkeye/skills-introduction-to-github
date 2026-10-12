@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 import asyncio
-import random
+import secrets
 from botbuilder.core import ActivityHandler, MessageFactory, TurnContext
 from botbuilder.schema import ChannelAccount
 
@@ -39,7 +39,7 @@ class PositiveVibesBot(ActivityHandler):
             await turn_context.send_activity("Please say something!")
             return
 
-        msg = random.choice(self.positive_messages)
+        msg = secrets.choice(self.positive_messages)
         return await turn_context.send_activity(
             MessageFactory.text(msg)
         )
