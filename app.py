@@ -4,6 +4,7 @@
 import asyncio
 import functools
 import sys
+import traceback
 from datetime import datetime, timezone
 from http import HTTPStatus
 
@@ -27,7 +28,9 @@ ADAPTER = CloudAdapter(ConfigurationBotFrameworkAuthentication(CONFIG))
 # Catch-all for errors.
 async def on_error(context: TurnContext, _error: Exception):
     loop = asyncio.get_running_loop()
-    await loop.run_in_executor(None, functools.partial(print, "\n [on_turn_error] unhandled error: An unhandled error occurred.", file=sys.stderr))
+    await loop.run_in_executor(None, functools.partial(print, f"\n [on_turn_error] unhandled error: {_error}" if CONFIG.ENVIRONMENT != "Production" else "\n [on_turn_error] unhandled error: An unhandled error occurred.", file=sys.stderr))
+    if CONFIG.ENVIRONMENT != "Production":
+        traceback.print_exc()
 
     # Send a message to the user
     await context.send_activity("The bot encountered an error or bug.")
@@ -41,7 +44,7 @@ async def on_error(context: TurnContext, _error: Exception):
             name="on_turn_error Trace",
             timestamp=datetime.now(timezone.utc),
             type=ActivityTypes.trace,
-            value="An unhandled error occurred.",
+            value=f"{_error}" if CONFIG.ENVIRONMENT != "Production" else "An unhandled error occurred.",
             value_type="https://www.botframework.com/schemas/error",
         )
         await context.send_activity(trace_activity)
