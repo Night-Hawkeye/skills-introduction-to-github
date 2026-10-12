@@ -7,11 +7,14 @@ def test_simulate_bitcoin_prices():
     assert 'Date' in df.columns
     assert 'Price' in df.columns
 
+_STATIC_DATES = pd.date_range(start='2023-01-01', periods=35)
+_STATIC_PRICES = [float(i * 10) for i in range(1, 36)]
+
 def test_calculate_moving_averages():
     # Create a simple dataframe with known values
-    dates = pd.date_range(start='2023-01-01', periods=35)
+    dates = _STATIC_DATES
     # Price linearly increasing: 10, 20, 30...
-    prices = [float(i * 10) for i in range(1, 36)]
+    prices = _STATIC_PRICES
     df = pd.DataFrame({'Date': dates, 'Price': prices})
 
     df = calculate_moving_averages(df)
