@@ -5,7 +5,7 @@ from bitcoin_trading import run_trading_algorithm
 
 def test_run_trading_algorithm_golden_cross():
     """Test that the algorithm buys on a Golden Cross."""
-    dates = [datetime.today() - timedelta(days=5 - i) for i in range(5)]
+    dates = pd.date_range(end=datetime.today(), periods=5).tolist()
 
     # Prices and MA are artificially constructed to trigger a BUY
     # Condition: prev_ma7 <= prev_ma30 AND ma7 > ma30
@@ -35,7 +35,7 @@ def test_run_trading_algorithm_golden_cross():
 
 def test_run_trading_algorithm_death_cross():
     """Test that the algorithm sells on a Death Cross."""
-    dates = [datetime.today() - timedelta(days=5 - i) for i in range(5)]
+    dates = pd.date_range(end=datetime.today(), periods=5).tolist()
 
     # First, we need to BUY so we have BTC to SELL
     # Then we trigger a Death Cross
@@ -71,7 +71,7 @@ def test_run_trading_algorithm_death_cross():
 
 def test_run_trading_algorithm_hold():
     """Test that the algorithm holds when there's no cross."""
-    dates = [datetime.today() - timedelta(days=3 - i) for i in range(3)]
+    dates = pd.date_range(end=datetime.today(), periods=3).tolist()
 
     df = pd.DataFrame(
         {
