@@ -78,7 +78,13 @@ async def test_on_error_emulator_channel():
 
     mock_error = Exception("Test emulator error")
 
+    from app import CONFIG
+    original_env = CONFIG.APP_ENV
+    CONFIG.APP_ENV = "development"
+
     await on_error(mock_context, mock_error)
+
+    CONFIG.APP_ENV = original_env
 
     assert mock_context.send_activity.call_count == 3
     mock_context.send_activity.assert_any_call("The bot encountered an error or bug.")
@@ -91,6 +97,33 @@ async def test_on_error_emulator_channel():
     assert trace_activity.type == ActivityTypes.trace
     assert trace_activity.label == "TurnError"
     assert trace_activity.value == "An unhandled error occurred."
+
+
+@pytest.mark.asyncio
+async def test_on_error_emulator_channel_production():
+    """Test on_error when channel_id is emulator but environment is production"""
+    from app import on_error
+    from botbuilder.core import TurnContext
+    from unittest.mock import MagicMock, AsyncMock
+    from app import CONFIG
+
+    original_env = CONFIG.APP_ENV
+    CONFIG.APP_ENV = "production"
+
+    mock_context = AsyncMock(spec=TurnContext)
+    mock_context.activity = MagicMock()
+    mock_context.activity.channel_id = "emulator"
+    mock_context.send_activity = AsyncMock()
+
+    mock_error = Exception("Test emulator error")
+
+    await on_error(mock_context, mock_error)
+
+    assert mock_context.send_activity.call_count == 2
+    mock_context.send_activity.assert_any_call("The bot encountered an error or bug.")
+    mock_context.send_activity.assert_any_call("To continue to run this bot, please fix the bot source code.")
+
+    CONFIG.APP_ENV = original_env
 
 
 def test_run_app_exception(mocker):
