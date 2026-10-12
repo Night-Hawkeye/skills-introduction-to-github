@@ -197,3 +197,25 @@ def test_calculate_btc_returns():
     prices_single = np.array([100.0])
     expected_single = np.array([0.0])
     np.testing.assert_array_almost_equal(_calculate_btc_returns(prices_single), expected_single)
+
+def test_calculate_moving_averages_empty_df():
+    """Test calculate_moving_averages with empty DataFrame."""
+    df_empty_structural = pd.DataFrame({'Date': [], 'Price': []})
+    result_structural = calculate_moving_averages(df_empty_structural)
+    assert len(result_structural) == 0
+    assert 'MA7' in result_structural.columns
+    assert 'MA30' in result_structural.columns
+    assert len(result_structural['MA7']) == 0
+    assert len(result_structural['MA30']) == 0
+    assert result_structural['MA7'].dtype == float
+    assert result_structural['MA30'].dtype == float
+
+    df_empty_complete = pd.DataFrame()
+    result_complete = calculate_moving_averages(df_empty_complete)
+    assert len(result_complete) == 0
+    assert 'MA7' in result_complete.columns
+    assert 'MA30' in result_complete.columns
+    assert len(result_complete['MA7']) == 0
+    assert len(result_complete['MA30']) == 0
+    assert result_complete['MA7'].dtype == float
+    assert result_complete['MA30'].dtype == float
