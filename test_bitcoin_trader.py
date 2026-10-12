@@ -229,3 +229,15 @@ def test_safe_divide():
     # Test with scalars
     assert _safe_divide(10.0, 2.0) == 5.0
     assert _safe_divide(10.0, 0.0) == 0.0
+
+def test_safe_divide_zeros():
+    from bitcoin_trading import _safe_divide
+    import numpy as np
+
+    # Test zeroes in both numerator and denominator
+    num = np.array([0.0, 0.0, 10.0])
+    den = np.array([0.0, 10.0, 0.0])
+
+    result = _safe_divide(num, den)
+    expected = np.array([0.0, 0.0, 0.0])
+    np.testing.assert_array_equal(result, expected)
