@@ -42,6 +42,10 @@ async def test_messages_json_media_type(cli, mocker):
     mock_process.assert_called_once()
 
 
+@pytest.fixture(autouse=True)
+def set_dev_env(monkeypatch):
+    monkeypatch.setattr("app.CONFIG.APP_ENV", "development")
+
 @pytest.mark.asyncio
 async def test_on_error_non_emulator_channel():
     """Test on_error when channel_id is not emulator"""
@@ -90,7 +94,7 @@ async def test_on_error_emulator_channel():
     assert isinstance(trace_activity, Activity)
     assert trace_activity.type == ActivityTypes.trace
     assert trace_activity.label == "TurnError"
-    assert trace_activity.value == "An unhandled error occurred."
+    assert trace_activity.value == str(mock_error)
 
 
 def test_run_app_exception(mocker):

@@ -31,20 +31,22 @@ async def on_error(context: TurnContext, _error: Exception):
 
     # Send a message to the user
     await context.send_activity("The bot encountered an error or bug.")
-    await context.send_activity(
-        "To continue to run this bot, please fix the bot source code."
-    )
-    # Send a trace activity if we're talking to the Bot Framework Emulator
-    if context.activity.channel_id == "emulator":
-        trace_activity = Activity(
-            label="TurnError",
-            name="on_turn_error Trace",
-            timestamp=datetime.now(timezone.utc),
-            type=ActivityTypes.trace,
-            value="An unhandled error occurred.",
-            value_type="https://www.botframework.com/schemas/error",
+
+    if CONFIG.APP_ENV == "development":
+        await context.send_activity(
+            "To continue to run this bot, please fix the bot source code."
         )
-        await context.send_activity(trace_activity)
+        # Send a trace activity if we're talking to the Bot Framework Emulator
+        if context.activity.channel_id == "emulator":
+            trace_activity = Activity(
+                label="TurnError",
+                name="on_turn_error Trace",
+                timestamp=datetime.now(timezone.utc),
+                type=ActivityTypes.trace,
+                value=str(_error),
+                value_type="https://www.botframework.com/schemas/error",
+            )
+            await context.send_activity(trace_activity)
 
 ADAPTER.on_turn_error = on_error
 
