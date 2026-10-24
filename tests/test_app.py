@@ -94,7 +94,7 @@ async def test_on_error_emulator_channel():
     assert isinstance(trace_activity, Activity)
     assert trace_activity.type == ActivityTypes.trace
     assert trace_activity.label == "TurnError"
-    assert trace_activity.value == str(mock_error)
+    assert trace_activity.value is None
 
 
 def test_run_app_exception(mocker):
