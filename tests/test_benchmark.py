@@ -1,5 +1,5 @@
 import numpy as np
-from benchmark import original, optimized, BenchmarkConfig
+from benchmark import original, optimized, BenchmarkConfig, _setup_benchmark
 from unittest.mock import MagicMock
 
 def test_original_basic():
@@ -102,3 +102,11 @@ def test_get_shocks_no_seed(mocker):
 
     expected_shocks = get_shocks(days=5, seed=12345)
     assert np.array_equal(shocks, expected_shocks)
+
+def test_setup_benchmark_none():
+    config, shocks = _setup_benchmark(None)
+    assert isinstance(config, BenchmarkConfig)
+    assert config.days == 10000
+    assert config.initial_price == 50000.0
+    assert len(shocks) == 9999
+    assert isinstance(shocks, np.ndarray)
