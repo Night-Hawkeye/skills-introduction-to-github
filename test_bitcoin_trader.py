@@ -235,3 +235,13 @@ def test_safe_divide_zeros():
     result = _safe_divide(num, den)
     expected = np.array([0.0, 0.0, 0.0])
     np.testing.assert_array_equal(result, expected)
+
+def test_simulate_bitcoin_prices_none_config():
+    # Pass None to simulate_bitcoin_prices
+    df = simulate_bitcoin_prices(None)
+
+    # It should default to SimulationConfig() with 60 days
+    assert isinstance(df, pd.DataFrame)
+    assert len(df) == 60
+    assert 'Date' in df.columns
+    assert 'Price' in df.columns
