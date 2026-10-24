@@ -102,5 +102,6 @@ def test_run_app_exception(mocker):
     import runpy
     mocker.patch("app.web.run_app", side_effect=Exception("Test Exception"))
     import pytest
-    with pytest.raises(SystemExit):
-        runpy.run_module("app", run_name="__main__")
+    mock_sys_exit = mocker.patch("app.sys.exit")
+    runpy.run_module("app", run_name="__main__")
+    mock_sys_exit.assert_called_once_with(1)
