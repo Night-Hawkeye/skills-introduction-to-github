@@ -1,8 +1,6 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
-import asyncio
-import functools
 import sys
 from datetime import datetime, timezone
 from http import HTTPStatus
@@ -26,8 +24,7 @@ ADAPTER = CloudAdapter(ConfigurationBotFrameworkAuthentication(CONFIG))
 
 # Catch-all for errors.
 async def on_error(context: TurnContext, _error: Exception):
-    loop = asyncio.get_running_loop()
-    await loop.run_in_executor(None, functools.partial(print, "\n [on_turn_error] unhandled error: An unhandled error occurred.", file=sys.stderr))
+    print("\n [on_turn_error] unhandled error: An unhandled error occurred.", file=sys.stderr)
 
     # Send a message to the user
     await context.send_activity("The bot encountered an error or bug.")
