@@ -235,3 +235,20 @@ def test_safe_divide_zeros():
     result = _safe_divide(num, den)
     expected = np.array([0.0, 0.0, 0.0])
     np.testing.assert_array_equal(result, expected)
+
+def test_run_trading_algorithm_negative_portfolio():
+    dates = pd.date_range(end=pd.Timestamp.today(), periods=3).tolist()
+    # Day 0: Setup
+    # Day 1: Golden Cross -> Buy at 100
+    # Day 2: Price goes to -50 -> Strategy Return is -1.5, Portfolio Value goes negative and gets bounded to 0.0
+    df = pd.DataFrame(
+        {
+            "Date": dates,
+            "Price": [100.0, 100.0, -50.0],
+            "MA7": [40.0, 60.0, 60.0],
+            "MA30": [50.0, 50.0, 50.0],
+        }
+    )
+    ledger_df = run_trading_algorithm(df)
+    assert ledger_df.loc[2, "Portfolio Value"] == 0.0
+    assert ledger_df.loc[2, "Cash"] == 0.0
