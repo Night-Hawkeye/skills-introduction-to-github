@@ -21,8 +21,6 @@ def simulate_bitcoin_prices(config: SimulationConfig = None):
 
     # Cryptographically secure random number generation
     seed = config.seed
-    if seed is None:
-        seed = secrets.randbits(128)
     rng = np.random.default_rng(seed)
     shocks = rng.normal(0.0, 1.0, config.days - 1)
     log_returns = (config.drift - 0.5 * config.volatility**2) + config.volatility * shocks
