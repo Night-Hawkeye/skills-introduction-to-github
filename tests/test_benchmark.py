@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 from benchmark import original, optimized, BenchmarkConfig
 from unittest.mock import MagicMock
 
@@ -102,3 +103,13 @@ def test_get_shocks_no_seed(mocker):
 
     expected_shocks = get_shocks(days=5, seed=12345)
     assert np.array_equal(shocks, expected_shocks)
+
+def test_get_shocks_edge_cases():
+    from benchmark import get_shocks
+    assert len(get_shocks(days=1, seed=42)) == 0
+
+    with pytest.raises(ValueError):
+        get_shocks(days=0, seed=42)
+
+    with pytest.raises(ValueError):
+        get_shocks(days=-1, seed=42)
