@@ -40,7 +40,7 @@ async def on_error(context: TurnContext, _error: Exception):
                 name="on_turn_error Trace",
                 timestamp=datetime.now(timezone.utc),
                 type=ActivityTypes.trace,
-                value=str(_error),
+                value=None,
                 value_type="https://www.botframework.com/schemas/error",
             )
             await context.send_activity(trace_activity)
