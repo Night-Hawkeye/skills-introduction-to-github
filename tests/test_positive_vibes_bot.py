@@ -66,6 +66,17 @@ async def test_on_message_activity_with_text(bot, turn_context):
     assert sent_activity.text == "You are awesome!"
 
 @pytest.mark.asyncio
+async def test_on_members_added_activity_empty_members(bot, turn_context):
+    bot_account = ChannelAccount(id="bot-id", name="Bot")
+    turn_context.activity.recipient = bot_account
+
+    members_added = []
+
+    await bot.on_members_added_activity(members_added, turn_context)
+
+    turn_context.send_activity.assert_not_called()
+
+@pytest.mark.asyncio
 async def test_on_members_added_activity_bot_added(bot, turn_context):
     # Setup members_added where only the bot is added
     bot_account = ChannelAccount(id="bot-id", name="Bot")
