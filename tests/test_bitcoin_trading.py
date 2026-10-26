@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from bitcoin_trading import run_trading_algorithm, simulate_bitcoin_prices, calculate_moving_averages, SimulationConfig
+from bitcoin_trading import run_trading_algorithm, simulate_bitcoin_prices, calculate_moving_averages, SimulationConfig, _generate_signals
 
 def create_mock_df(prices, ma7s, ma30s):
     dates = [pd.Timestamp(2023, 1, 1) + pd.Timedelta(days=i) for i in range(len(prices))]
@@ -219,3 +219,32 @@ def test_calculate_moving_averages_empty_df():
     assert len(result_complete['MA30']) == 0
     assert result_complete['MA7'].dtype == float
     assert result_complete['MA30'].dtype == float
+
+def test_generate_signals_empty():
+    ma7 = np.array([])
+    ma30 = np.array([])
+    index = pd.Index([])
+
+    signals = _generate_signals(ma7, ma30, index)
+    assert len(signals) == 0
+    assert isinstance(signals, np.ndarray)
+
+def test_generate_signals_all_nans():
+    ma7 = np.array([np.nan, np.nan, np.nan])
+    ma30 = np.array([np.nan, np.nan, np.nan])
+    index = pd.date_range("2023-01-01", periods=3)
+
+    signals = _generate_signals(ma7, ma30, index)
+
+    assert len(signals) == 3
+    np.testing.assert_array_equal(signals, np.array([0.0, 0.0, 0.0]))
+
+def test_generate_signals_single_element():
+    ma7 = np.array([100.0])
+    ma30 = np.array([110.0])
+    index = pd.date_range("2023-01-01", periods=1)
+
+    signals = _generate_signals(ma7, ma30, index)
+
+    assert len(signals) == 1
+    np.testing.assert_array_equal(signals, np.array([0.0]))
