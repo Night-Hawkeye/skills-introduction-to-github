@@ -64,3 +64,28 @@ def test_calculate_portfolio_negative_returns_bounded():
     position = np.array([1, 1])
     portfolio_value, cash_held, btc_held = _calculate_portfolio(prices, position, 10000.0)
     assert np.allclose(portfolio_value, [10000.0, 0.0])
+    assert np.allclose(cash_held, [0.0, 0.0])
+    assert np.allclose(btc_held, [100.0, 0.0])
+
+
+def test_calculate_portfolio_negative_returns_recovery():
+    # Force negative portfolio, then recover
+    # Day 0: 10k, hold BTC
+    # Day 1: price drops from 100 to -50, return is -1.5, port is 10k * (1 - 1.5) = -5000 -> bounds to 0
+    # Day 2: price goes from -50 to 50, return is (50 - -50)/-50 = -2.0, port is 10k * (1 - 1.5) * (1 - 2.0) = 10k * -0.5 * -1.0 = 5000
+    prices = np.array([100.0, -50.0, 50.0])
+    position = np.array([1, 1, 1])
+    portfolio_value, cash_held, btc_held = _calculate_portfolio(prices, position, 10000.0)
+    assert np.allclose(portfolio_value, [10000.0, 0.0, 5000.0])
+    assert np.allclose(cash_held, [0.0, 0.0, 0.0])
+    assert np.allclose(btc_held, [100.0, 0.0, 100.0])
+
+
+def test_calculate_portfolio_negative_returns_sell():
+    # Force negative portfolio, then sell
+    prices = np.array([100.0, -50.0, 50.0])
+    position = np.array([1, 1, 0])
+    portfolio_value, cash_held, btc_held = _calculate_portfolio(prices, position, 10000.0)
+    assert np.allclose(portfolio_value, [10000.0, 0.0, 5000.0])
+    assert np.allclose(cash_held, [0.0, 0.0, 5000.0])
+    assert np.allclose(btc_held, [100.0, 0.0, 0.0])
