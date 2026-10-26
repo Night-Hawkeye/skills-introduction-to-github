@@ -62,3 +62,16 @@ def test_generate_actions_zero_prices():
     assert actions[0] == "HOLD"
     assert actions[1] == "BUY 10000.0000 BTC"
     assert actions[2] == "SELL 10000.0000 BTC"
+
+def test_generate_actions_formatting_edge_cases():
+    position = np.array([0, 1, 0, 1, 0])
+    portfolio_value = np.array([10000.0, 10000.0, 10000.0, 10000.0, 10000.0])
+    # Floating point numbers to test rounding
+    btc_held = np.array([0.0, 0.12344, 0.0, 0.99999, 0.0])
+
+    actions = _generate_actions(position, portfolio_value, btc_held)
+    assert actions[0] == "HOLD"
+    assert actions[1] == "BUY 0.1234 BTC"
+    assert actions[2] == "SELL 0.1234 BTC"
+    assert actions[3] == "BUY 1.0000 BTC"
+    assert actions[4] == "SELL 1.0000 BTC"
